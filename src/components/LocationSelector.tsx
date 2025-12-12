@@ -32,7 +32,7 @@ export function LocationSelector({
   required = false,
   error,
 }: LocationSelectorProps) {
-  const { Select, Spinner, Alert } = useUi();
+  const { Spinner, Alert, Input } = useUi();
   const { tree, loading, error: treeError } = useLocationTree();
   const { data, loading: listLoading } = useLocations({ pageSize: 1000 });
   const [searchTerm, setSearchTerm] = useState('');
@@ -68,32 +68,31 @@ export function LocationSelector({
     );
   }
 
-  const options = filteredLocations.map(loc => ({
-    value: loc.id,
-    label: showHierarchy && loc.parentId
-      ? `  ${loc.name}`
-      : loc.name,
-  }));
-
   return (
     <div className="space-y-2">
-      <Select
-        value={value || ''}
-        onChange={(val) => onChange(val || null)}
-        options={options}
-        placeholder={placeholder}
-        error={error}
-        required={required}
-        allowClear={allowClear}
-      />
-      {searchTerm && (
-        <input
-          type="text"
+      {filteredLocations.length > 10 && (
+        <Input
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={setSearchTerm}
           placeholder="Search locations..."
-          className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800"
         />
+      )}
+      <select
+        value={value || ''}
+        onChange={(e) => onChange(e.target.value || null)}
+        required={required}
+        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+      >
+        {!required && <option value="">{placeholder}</option>}
+        {filteredLocations.map(loc => (
+          <option key={loc.id} value={loc.id}>
+            {showHierarchy && loc.parentId ? `  ${loc.name}` : loc.name}
+            {loc.code && ` (${loc.code})`}
+          </option>
+        ))}
+      </select>
+      {error && (
+        <p className="text-sm text-red-500">{error}</p>
       )}
     </div>
   );

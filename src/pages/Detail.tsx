@@ -126,12 +126,13 @@ export function LocationDetail({
         {location.isActive ? (
           <Badge variant="success">Active</Badge>
         ) : (
-          <Badge variant="danger">Inactive</Badge>
+          <Badge variant="error">Inactive</Badge>
         )}
       </div>
 
       {/* Location Information */}
-      <Card className="mb-4">
+      <div className="mb-4">
+        <Card>
         <h3 className="text-lg font-semibold mb-4">Location Information</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -163,7 +164,8 @@ export function LocationDetail({
             </>
           )}
         </div>
-      </Card>
+        </Card>
+      </div>
 
       {/* Map */}
       {location.latitude && location.longitude && (

@@ -34,10 +34,12 @@ export interface LocationUserMembership {
 
 interface PaginatedResponse<T> {
   items: T[];
-  total: number;
-  page: number;
-  page_size: number;
-  total_pages: number;
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 interface UseQueryOptions {
@@ -100,14 +102,14 @@ export function useLocations(options: UseQueryOptions = {}) {
       setLoading(true);
       const params = new URLSearchParams({
         page: String(page),
-        page_size: String(pageSize),
+        pageSize: String(pageSize),
       });
       if (search) params.set('search', search);
-      if (sortBy) params.set('sort_by', sortBy);
-      if (sortOrder) params.set('sort_order', sortOrder);
-      if (parentId !== undefined) params.set('parent_id', parentId || '');
-      if (isActive !== undefined) params.set('is_active', String(isActive));
-      if (isPrimary !== undefined) params.set('is_primary', String(isPrimary));
+      if (sortBy) params.set('sortBy', sortBy);
+      if (sortOrder) params.set('sortOrder', sortOrder);
+      if (parentId !== undefined) params.set('parentId', parentId || '');
+      if (isActive !== undefined) params.set('isActive', String(isActive));
+      if (isPrimary !== undefined) params.set('isPrimary', String(isPrimary));
 
       const result = await fetchApi<PaginatedResponse<Location>>(`?${params}`);
       setData(result);

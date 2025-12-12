@@ -6,7 +6,6 @@ import {
   Eye,
   Edit,
   Trash2,
-  MapPin,
   Building2,
 } from 'lucide-react';
 import { useUi } from '@hit/ui-kit';
@@ -19,7 +18,7 @@ interface LocationListProps {
 export function LocationList({
   onNavigate,
 }: LocationListProps) {
-  const { Page, Card, Button, DataTable, Badge, EmptyState, Alert, Spinner } = useUi();
+  const { Page, Card, Button, DataTable, Badge, Alert, Input } = useUi();
   
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
@@ -63,7 +62,7 @@ export function LocationList({
     }
   };
 
-  const formatAddress = (location: Location) => {
+  const formatAddress = (location: Pick<Location, 'address' | 'city' | 'state' | 'postalCode'>) => {
     const parts = [
       location.address,
       location.city,
@@ -91,8 +90,16 @@ export function LocationList({
         </Alert>
       )}
 
-      {/* Locations Table */}
       <Card>
+        <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+          <Input
+            value={search}
+            onChange={setSearch}
+            placeholder="Search locations..."
+          />
+        </div>
+
+      {/* Locations Table */}
         <DataTable
           columns={[
             {
@@ -105,8 +112,10 @@ export function LocationList({
                     onClick={() => navigate(`/locations/${row.id}`)}
                     className="font-medium hover:text-blue-500 transition-colors text-left flex items-center gap-2"
                   >
-                    {row.isPrimary && (
-                      <Building2 size={16} className="text-yellow-500" title="Primary/HQ Location" />
+                    {Boolean(row.isPrimary) && (
+                      <span title="Primary/HQ Location" className="inline-flex">
+                        <Building2 size={16} className="text-yellow-500" />
+                      </span>
                     )}
                     {row.name as string}
                   </button>
@@ -122,7 +131,13 @@ export function LocationList({
             {
               key: 'address',
               label: 'Address',
-              render: (_, row) => formatAddress(row as Location),
+              render: (_, row) =>
+                formatAddress({
+                  address: row.address as string | null,
+                  city: row.city as string | null,
+                  state: row.state as string | null,
+                  postalCode: row.postalCode as string | null,
+                }),
             },
             {
               key: 'isPrimary',
@@ -131,7 +146,7 @@ export function LocationList({
                 value ? (
                   <Badge variant="success">Primary</Badge>
                 ) : (
-                  <Badge variant="secondary">Standard</Badge>
+                  <Badge variant="default">Standard</Badge>
                 ),
             },
             {
@@ -141,7 +156,7 @@ export function LocationList({
                 value ? (
                   <Badge variant="success">Active</Badge>
                 ) : (
-                  <Badge variant="danger">Inactive</Badge>
+                  <Badge variant="error">Inactive</Badge>
                 ),
             },
             {
@@ -164,7 +179,6 @@ export function LocationList({
                       size="sm"
                       onClick={() => handleSetPrimary(row.id as string)}
                       disabled={mutating}
-                      title="Set as primary location"
                     >
                       <Building2 size={16} />
                     </Button>
@@ -195,8 +209,6 @@ export function LocationList({
           })) || []}
           emptyMessage="No locations found"
           loading={loading}
-          searchable
-          onSearch={setSearch}
           exportable
           showColumnVisibility
           pageSize={25}

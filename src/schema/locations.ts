@@ -12,7 +12,7 @@
  * @ui-edit fields: name(text, required), code(text), address(textarea), city(text), state(text), postalCode(text), country(text), parentId(select), isPrimary(checkbox)
  */
 
-import { pgTable, varchar, text, timestamp, boolean, uuid, decimal, index } from "drizzle-orm/pg-core";
+import { pgTable, varchar, text, timestamp, boolean, uuid, decimal, index, type AnyPgColumn } from "drizzle-orm/pg-core";
 
 /**
  * Locations table - stores business locations
@@ -58,7 +58,8 @@ export const locations = pgTable("locations", {
    * Parent location ID for hierarchical structure
    * Null for top-level locations
    */
-  parentId: uuid("parent_id").references(() => locations.id, { onDelete: "set null" }),
+  // Self-referencing foreign key: provide explicit return type to avoid TS circular inference issues
+  parentId: uuid("parent_id").references((): AnyPgColumn => locations.id, { onDelete: "set null" }),
 
   /**
    * Whether this is the primary/HQ location
