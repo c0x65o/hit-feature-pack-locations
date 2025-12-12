@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS "locations" (
   "longitude" numeric(10, 7),
   "parent_id" uuid,
   "location_type_id" uuid,
+  "is_primary" boolean DEFAULT false NOT NULL,
   "is_active" boolean DEFAULT true NOT NULL,
   "created_at" timestamp DEFAULT now() NOT NULL,
   "updated_at" timestamp DEFAULT now() NOT NULL
@@ -72,6 +73,7 @@ END $$;
 CREATE INDEX IF NOT EXISTS "locations_code_idx" ON "locations" USING btree ("code");
 CREATE INDEX IF NOT EXISTS "locations_parent_idx" ON "locations" USING btree ("parent_id");
 CREATE INDEX IF NOT EXISTS "locations_type_idx" ON "locations" USING btree ("location_type_id");
+CREATE INDEX IF NOT EXISTS "locations_primary_idx" ON "locations" USING btree ("is_primary");
 CREATE INDEX IF NOT EXISTS "locations_active_idx" ON "locations" USING btree ("is_active");
 
 CREATE TABLE IF NOT EXISTS "location_user_memberships" (

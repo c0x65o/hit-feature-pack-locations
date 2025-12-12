@@ -286,6 +286,18 @@ export declare const locations: import("drizzle-orm/pg-core").PgTableWithColumns
             enumValues: undefined;
             baseColumn: never;
         }, {}, {}>;
+        isPrimary: import("drizzle-orm/pg-core").PgColumn<{
+            name: "is_primary";
+            tableName: "locations";
+            dataType: "boolean";
+            columnType: "PgBoolean";
+            data: boolean;
+            driverParam: boolean;
+            notNull: true;
+            hasDefault: true;
+            enumValues: undefined;
+            baseColumn: never;
+        }, {}, {}>;
         isActive: import("drizzle-orm/pg-core").PgColumn<{
             name: "is_active";
             tableName: "locations";

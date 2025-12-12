@@ -102,6 +102,9 @@ export const locations = pgTable("locations", {
    */
   locationTypeId: uuid("location_type_id").references(() => locationTypes.id, { onDelete: "set null" }),
 
+  /** Whether this is the primary/HQ location */
+  isPrimary: boolean("is_primary").notNull().default(false),
+
   /** Whether the location is active */
   isActive: boolean("is_active").notNull().default(true),
 
@@ -115,6 +118,7 @@ export const locations = pgTable("locations", {
   codeIdx: index("locations_code_idx").on(table.code),
   parentIdx: index("locations_parent_idx").on(table.parentId),
   typeIdx: index("locations_type_idx").on(table.locationTypeId),
+  primaryIdx: index("locations_primary_idx").on(table.isPrimary),
   activeIdx: index("locations_active_idx").on(table.isActive),
 }));
 
