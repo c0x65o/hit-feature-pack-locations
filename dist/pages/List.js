@@ -106,7 +106,7 @@ export function LocationList({ onNavigate, }) {
                             country: loc.country,
                             isPrimary: loc.isPrimary,
                             isActive: loc.isActive,
-                        })) || [], emptyMessage: "No locations found", loading: loading, exportable: true, showColumnVisibility: true, pageSize: 25 })] })] }));
+                        })) || [], emptyMessage: "No locations found", loading: loading, exportable: true, showColumnVisibility: true, pageSize: 25, onRefresh: refresh })] })] }));
 }
 export default LocationList;
 //# sourceMappingURL=List.js.map
