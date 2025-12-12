@@ -1,0 +1,113 @@
+/**
+ * Geocoding API hooks
+ */
+
+'use client';
+
+import { useState, useCallback } from 'react';
+
+export interface GeocodeResult {
+  latitude: number;
+  longitude: number;
+  formattedAddress?: string;
+}
+
+interface UseGeocodeOptions {
+  provider?: 'nominatim' | 'google';
+  apiKey?: string;
+}
+
+// API base - uses project's local API routes
+const API_BASE = '/api/locations';
+
+function getAuthHeaders(): Record<string, string> {
+  if (typeof window === 'undefined') return {};
+  
+  const token = localStorage.getItem('hit_token');
+  if (token) {
+    return { 'Authorization': `Bearer ${token}` };
+  }
+  return {};
+}
+
+async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_BASE}${endpoint}`, {
+    ...options,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders(),
+      ...options?.headers,
+    },
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ message: res.statusText }));
+    throw new Error(error.message || `Request failed: ${res.status}`);
+  }
+
+  return res.json();
+}
+
+/**
+ * Geocode an address to coordinates
+ */
+export function useGeocode() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const geocode = useCallback(async (
+    address: string,
+    options?: UseGeocodeOptions
+  ): Promise<GeocodeResult> => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await fetchApi<GeocodeResult>('/geocode', {
+        method: 'POST',
+        body: JSON.stringify({ address, ...options }),
+      });
+      return result;
+    } catch (e) {
+      const err = e as Error;
+      setError(err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return { geocode, loading, error };
+}
+
+/**
+ * Reverse geocode coordinates to address
+ */
+export function useReverseGeocode() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const reverseGeocode = useCallback(async (
+    latitude: number,
+    longitude: number,
+    options?: UseGeocodeOptions
+  ): Promise<GeocodeResult> => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await fetchApi<GeocodeResult>('/reverse-geocode', {
+        method: 'POST',
+        body: JSON.stringify({ latitude, longitude, ...options }),
+      });
+      return result;
+    } catch (e) {
+      const err = e as Error;
+      setError(err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return { reverseGeocode, loading, error };
+}

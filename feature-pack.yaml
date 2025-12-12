@@ -1,0 +1,106 @@
+# Feature Pack: locations
+# Locations management with hierarchical structure, user assignments, maps, and geocoding
+
+name: locations
+version: 1.0.0
+description: Locations feature pack with hierarchical locations, user assignments, map visualization, and geocoding
+
+# Route definitions - mapped to React components
+routes:
+  - path: /locations
+    page: LocationList
+    roles: []  # Empty = authenticated users only
+  - path: /locations/new
+    page: LocationEdit
+    roles: []
+  - path: /locations/[id]
+    page: LocationDetail
+    roles: []
+  - path: /locations/[id]/edit
+    page: LocationEdit
+    roles: []
+
+# Navigation contributions - auto-added to shell sidebar
+nav:
+  - id: locations
+    label: Locations
+    path: /locations
+    icon: MapPin
+    group: main  # Primary business features
+    showWhen: authenticated
+    weight: 150  # Primary content near top (lower weight = higher position)
+
+# Schema contributions (Drizzle tables)
+# Projects import these into their schema
+schema:
+  source: src/schema/locations.ts
+  exports: [locations, locationUserMemberships, Location, InsertLocation, UpdateLocation, LocationUserMembership, InsertLocationUserMembership, UpdateLocationUserMembership]
+
+# API routes the feature pack expects
+# Projects create these routes using the schema
+api:
+  routes:
+    - path: /api/locations
+      methods: [GET, POST]
+      description: "List locations (GET) or create location (POST)"
+    - path: /api/locations/[id]
+      methods: [GET, PUT, DELETE]
+      description: "Get, update, or delete a specific location"
+    - path: /api/locations/tree
+      methods: [GET]
+      description: "Get locations in hierarchical tree structure"
+    - path: /api/locations/[id]/set-primary
+      methods: [POST]
+      description: "Set location as primary/HQ location"
+    - path: /api/locations/memberships
+      methods: [GET, POST]
+      description: "Get user's location memberships (GET) or assign user to location (POST)"
+    - path: /api/locations/memberships/[id]
+      methods: [DELETE]
+      description: "Remove user from location"
+    - path: /api/locations/geocode
+      methods: [POST]
+      description: "Geocode address to latitude/longitude"
+
+# No module dependencies - runs on project's own database
+requires:
+  modules: []
+
+# Dependencies on other feature packs
+dependencies:
+  feature_packs:
+    - name: dashboard-shell
+
+# Configurable options
+config:
+  schema:
+    hierarchical_enabled:
+      type: boolean
+      default: true
+      description: "Enable hierarchical parent/child location relationships"
+    map_enabled:
+      type: boolean
+      default: true
+      description: "Enable map visualization for locations"
+    geocoding_enabled:
+      type: boolean
+      default: true
+      description: "Enable automatic geocoding of addresses to coordinates"
+    geocoding_provider:
+      type: string
+      default: "nominatim"
+      enum: [nominatim, google]
+      description: "Geocoding provider (nominatim is free, google requires API key)"
+    require_location_on_signup:
+      type: boolean
+      default: false
+      description: "Require location selection during user signup"
+    default_new_user_strategy:
+      type: string
+      default: "primary"
+      enum: [primary, first_location, none]
+      description: "Strategy for assigning default location to new users (primary=HQ location, first_location=first active location, none=no auto-assignment)"
+    allow_multiple_user_locations:
+      type: boolean
+      default: true
+      description: "Allow users to be assigned to multiple locations"

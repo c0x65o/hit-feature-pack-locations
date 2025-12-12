@@ -1,0 +1,57 @@
+{
+  "name": "@hit/feature-pack-locations",
+  "version": "1.0.0",
+  "description": "Locations feature pack with hierarchical locations, user assignments, map visualization, and geocoding. Uses @hit/ui-kit for shell-agnostic UI.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema/locations.d.ts",
+      "import": "./dist/schema/locations.js",
+      "require": "./dist/schema/locations.js",
+      "default": "./dist/schema/locations.js"
+    }
+  },
+  "files": [
+    "dist",
+    "feature-pack.yaml"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {},
+  "peerDependencies": {
+    "@hit/ui-kit": "*",
+    "react": "^18.0.0 || ^19.0.0",
+    "next": "^14.0.0 || ^15.0.0",
+    "@hit/sdk": "*",
+    "lucide-react": ">=0.263.0",
+    "drizzle-orm": ">=0.30.0"
+  },
+  "devDependencies": {
+    "@hit/ui-kit": "file:../hit-ui-kit",
+    "@types/react": "^18.2.0",
+    "drizzle-orm": "^0.30.0",
+    "lucide-react": "^0.460.0",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "hit",
+    "feature-pack",
+    "locations",
+    "maps",
+    "geocoding",
+    "crud",
+    "ui-kit"
+  ],
+  "license": "MIT"
+}

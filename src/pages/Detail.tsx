@@ -1,0 +1,182 @@
+'use client';
+
+import React from 'react';
+import {
+  ArrowLeft,
+  Edit,
+  Trash2,
+  MapPin,
+  Building2,
+} from 'lucide-react';
+import { useUi } from '@hit/ui-kit';
+import { useLocation, useLocationMutations } from '../hooks/useLocations';
+import { LocationMap } from '../components/LocationMap';
+
+interface LocationDetailProps {
+  id?: string;
+  onNavigate?: (path: string) => void;
+}
+
+export function LocationDetail({
+  id,
+  onNavigate,
+}: LocationDetailProps) {
+  const { Page, Card, Button, Alert, Spinner, Badge } = useUi();
+  
+  const { location, loading, error } = useLocation(id);
+  const { deleteLocation, loading: mutating } = useLocationMutations();
+
+  const navigate = (path: string) => {
+    if (onNavigate) {
+      onNavigate(path);
+    } else if (typeof window !== 'undefined') {
+      window.location.href = path;
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!location) return;
+    if (!confirm(`Are you sure you want to delete "${location.name}"? This cannot be undone.`)) {
+      return;
+    }
+    try {
+      await deleteLocation(location.id);
+      navigate('/locations');
+    } catch {
+      // Error handled by hook
+    }
+  };
+
+  const formatAddress = () => {
+    if (!location) return 'No address';
+    const parts = [
+      location.address,
+      location.city,
+      location.state,
+      location.postalCode,
+      location.country,
+    ].filter(Boolean);
+    return parts.length > 0 ? parts.join(', ') : 'No address';
+  };
+
+  // Loading State
+  if (loading) {
+    return (
+      <Page title="Loading...">
+        <Card>
+          <div className="flex items-center justify-center py-12">
+            <Spinner size="lg" />
+          </div>
+        </Card>
+      </Page>
+    );
+  }
+
+  // Error State
+  if (error) {
+    return (
+      <Page
+        title="Location Not Found"
+        actions={
+          <Button variant="secondary" onClick={() => navigate('/locations')}>
+            <ArrowLeft size={16} className="mr-2" />
+            Back to Locations
+          </Button>
+        }
+      >
+        <Alert variant="error" title="Error">
+          {error.message}
+        </Alert>
+      </Page>
+    );
+  }
+
+  if (!location) {
+    return null;
+  }
+
+  return (
+    <Page
+      title={location.name}
+      actions={
+        <div className="flex items-center gap-3">
+          <Button variant="secondary" onClick={() => navigate('/locations')}>
+            <ArrowLeft size={16} className="mr-2" />
+            Back
+          </Button>
+          <Button variant="primary" onClick={() => navigate(`/locations/${location.id}/edit`)}>
+            <Edit size={16} className="mr-2" />
+            Edit
+          </Button>
+          <Button variant="danger" onClick={handleDelete} disabled={mutating}>
+            <Trash2 size={16} className="mr-2" />
+            Delete
+          </Button>
+        </div>
+      }
+    >
+      {/* Status Badges */}
+      <div className="flex items-center gap-2 mb-4">
+        {location.isPrimary && (
+          <Badge variant="success">
+            <Building2 size={14} className="mr-1" />
+            Primary Location
+          </Badge>
+        )}
+        {location.isActive ? (
+          <Badge variant="success">Active</Badge>
+        ) : (
+          <Badge variant="danger">Inactive</Badge>
+        )}
+      </div>
+
+      {/* Location Information */}
+      <Card className="mb-4">
+        <h3 className="text-lg font-semibold mb-4">Location Information</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Name</label>
+            <p className="text-gray-900 dark:text-gray-100">{location.name}</p>
+          </div>
+          {location.code && (
+            <div>
+              <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Code</label>
+              <p className="text-gray-900 dark:text-gray-100">
+                <code className="text-sm">{location.code}</code>
+              </p>
+            </div>
+          )}
+          <div className="md:col-span-2">
+            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Address</label>
+            <p className="text-gray-900 dark:text-gray-100">{formatAddress()}</p>
+          </div>
+          {location.latitude && location.longitude && (
+            <>
+              <div>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Latitude</label>
+                <p className="text-gray-900 dark:text-gray-100">{location.latitude}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Longitude</label>
+                <p className="text-gray-900 dark:text-gray-100">{location.longitude}</p>
+              </div>
+            </>
+          )}
+        </div>
+      </Card>
+
+      {/* Map */}
+      {location.latitude && location.longitude && (
+        <Card>
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <MapPin size={20} />
+            Map View
+          </h3>
+          <LocationMap location={location} height="400px" />
+        </Card>
+      )}
+    </Page>
+  );
+}
+
+export default LocationDetail;
