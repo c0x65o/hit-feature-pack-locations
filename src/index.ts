@@ -19,13 +19,20 @@
 
 // Pages - exported individually for tree-shaking
 export {
+  LocationDashboard,
+  LocationDashboardPage,
   LocationList,
   LocationListPage,
   LocationDetail,
   LocationDetailPage,
   LocationEdit,
   LocationEditPage,
+  LocationTypes,
+  LocationTypesPage,
 } from './pages/index';
+
+// Dashboard alias for route matching
+export { LocationDashboard as Dashboard } from './pages/Dashboard';
 
 // Components - exported individually for tree-shaking
 export * from './components/index';
@@ -38,12 +45,17 @@ export { navContributions as nav } from './nav';
 
 // Schema exports - for projects to import into their schema
 export {
+  locationTypes,
   locations,
   locationUserMemberships,
+  type LocationType,
+  type InsertLocationType,
+  type UpdateLocationType,
   type Location,
   type InsertLocation,
   type UpdateLocation,
   type LocationUserMembership,
   type InsertLocationUserMembership,
   type UpdateLocationUserMembership,
+  DEFAULT_LOCATION_TYPES,
 } from './schema/locations';

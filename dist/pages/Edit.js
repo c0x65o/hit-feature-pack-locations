@@ -4,14 +4,16 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, Save, MapPin } from 'lucide-react';
 import { useUi } from '@hit/ui-kit';
 import { useLocation, useLocationMutations } from '../hooks/useLocations';
+import { useLocationTypes } from '../hooks/useLocationTypes';
 import { useGeocode } from '../hooks/useGeocoding';
 import { LocationSelector } from '../components/LocationSelector';
 import { LocationMap } from '../components/LocationMap';
 export function LocationEdit({ id, onNavigate, }) {
-    const { Page, Card, Button, Input, TextArea, Alert, Spinner, Checkbox } = useUi();
+    const { Page, Card, Button, Input, TextArea, Alert, Spinner, Checkbox, Select } = useUi();
     const isNew = !id || id === 'new';
     const { location, loading: loadingLocation, error: loadError } = useLocation(isNew ? undefined : id);
     const { createLocation, updateLocation, loading: saving, error: saveError } = useLocationMutations();
+    const { types } = useLocationTypes();
     const { geocode, loading: geocoding } = useGeocode();
     const [name, setName] = useState('');
     const [code, setCode] = useState('');
@@ -23,7 +25,7 @@ export function LocationEdit({ id, onNavigate, }) {
     const [latitude, setLatitude] = useState('');
     const [longitude, setLongitude] = useState('');
     const [parentId, setParentId] = useState(null);
-    const [isPrimary, setIsPrimary] = useState(false);
+    const [locationTypeId, setLocationTypeId] = useState(null);
     const [isActive, setIsActive] = useState(true);
     const [fieldErrors, setFieldErrors] = useState({});
     // Populate form when location loads
@@ -39,7 +41,7 @@ export function LocationEdit({ id, onNavigate, }) {
             setLatitude(location.latitude || '');
             setLongitude(location.longitude || '');
             setParentId(location.parentId);
-            setIsPrimary(location.isPrimary);
+            setLocationTypeId(location.locationTypeId || location.location_type_id || null);
             setIsActive(location.isActive);
         }
     }, [location]);
@@ -101,7 +103,7 @@ export function LocationEdit({ id, onNavigate, }) {
             latitude: latitude || null,
             longitude: longitude || null,
             parentId,
-            isPrimary,
+            locationTypeId,
             isActive,
         };
         try {
@@ -139,7 +141,10 @@ export function LocationEdit({ id, onNavigate, }) {
         latitude: latitude || null,
         longitude: longitude || null,
     };
-    return (_jsxs(Page, { title: isNew ? 'New Location' : 'Edit Location', actions: _jsxs(Button, { variant: "secondary", onClick: handleCancel, children: [_jsx(ArrowLeft, { size: 16, className: "mr-2" }), "Cancel"] }), children: [saveError && (_jsx(Alert, { variant: "error", title: "Error saving location", children: saveError.message })), _jsxs("form", { onSubmit: handleSubmit, className: "space-y-6", children: [_jsxs(Card, { children: [_jsx("h3", { className: "text-lg font-semibold mb-4", children: "Basic Information" }), _jsxs("div", { className: "space-y-4", children: [_jsx(Input, { label: "Name", value: name, onChange: setName, placeholder: "Enter location name...", required: true, error: fieldErrors.name }), _jsx(Input, { label: "Code", value: code, onChange: setCode, placeholder: "Optional location code..." })] })] }), _jsxs(Card, { children: [_jsx("h3", { className: "text-lg font-semibold mb-4", children: "Address" }), _jsxs("div", { className: "space-y-4", children: [_jsx(TextArea, { label: "Street Address", value: address, onChange: setAddress, placeholder: "Enter street address...", rows: 2 }), _jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [_jsx(Input, { label: "City", value: city, onChange: setCity, placeholder: "City" }), _jsx(Input, { label: "State/Province", value: state, onChange: setState, placeholder: "State or Province" }), _jsx(Input, { label: "Postal Code", value: postalCode, onChange: setPostalCode, placeholder: "ZIP/Postal Code" }), _jsx(Input, { label: "Country", value: country, onChange: setCountry, placeholder: "Country" })] }), _jsxs("div", { className: "flex items-end gap-2", children: [_jsxs("div", { className: "flex-1 grid grid-cols-2 gap-2", children: [_jsx(Input, { label: "Latitude", value: latitude, onChange: setLatitude, placeholder: "Auto-filled via geocoding", error: fieldErrors.latitude }), _jsx(Input, { label: "Longitude", value: longitude, onChange: setLongitude, placeholder: "Auto-filled via geocoding", error: fieldErrors.longitude })] }), _jsxs(Button, { type: "button", variant: "secondary", onClick: handleGeocode, disabled: geocoding, children: [_jsx(MapPin, { size: 16, className: "mr-2" }), geocoding ? 'Geocoding...' : 'Lookup Coordinates'] })] })] })] }), (latitude || longitude) && (_jsxs(Card, { children: [_jsx("h3", { className: "text-lg font-semibold mb-4", children: "Map Preview" }), _jsx(LocationMap, { location: currentLocation, height: "300px" })] })), _jsxs(Card, { children: [_jsx("h3", { className: "text-lg font-semibold mb-4", children: "Settings" }), _jsxs("div", { className: "space-y-4", children: [_jsx(LocationSelector, { value: parentId, onChange: setParentId, placeholder: "Select parent location (optional)", excludeId: id, allowClear: true }), _jsxs("div", { className: "space-y-2", children: [_jsx(Checkbox, { checked: isPrimary, onChange: setIsPrimary, label: "Set as primary/HQ location" }), _jsx(Checkbox, { checked: isActive, onChange: setIsActive, label: "Active" })] })] })] }), _jsxs("div", { className: "flex items-center justify-end gap-3 pt-4 mt-4 border-t border-gray-800", children: [_jsx(Button, { type: "button", variant: "secondary", onClick: handleCancel, children: "Cancel" }), _jsxs(Button, { type: "submit", variant: "primary", loading: saving, children: [_jsx(Save, { size: 16, className: "mr-2" }), isNew ? 'Create Location' : 'Save Changes'] })] })] })] }));
+    return (_jsxs(Page, { title: isNew ? 'New Location' : 'Edit Location', actions: _jsxs(Button, { variant: "secondary", onClick: handleCancel, children: [_jsx(ArrowLeft, { size: 16, className: "mr-2" }), "Cancel"] }), children: [saveError && (_jsx(Alert, { variant: "error", title: "Error saving location", children: saveError.message })), _jsxs("form", { onSubmit: handleSubmit, className: "space-y-6", children: [_jsxs(Card, { children: [_jsx("h3", { className: "text-lg font-semibold mb-4", children: "Basic Information" }), _jsxs("div", { className: "space-y-4", children: [_jsx(Input, { label: "Name", value: name, onChange: setName, placeholder: "Enter location name...", required: true, error: fieldErrors.name }), _jsx(Input, { label: "Code", value: code, onChange: setCode, placeholder: "Optional location code..." })] })] }), _jsxs(Card, { children: [_jsx("h3", { className: "text-lg font-semibold mb-4", children: "Address" }), _jsxs("div", { className: "space-y-4", children: [_jsx(TextArea, { label: "Street Address", value: address, onChange: setAddress, placeholder: "Enter street address...", rows: 2 }), _jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [_jsx(Input, { label: "City", value: city, onChange: setCity, placeholder: "City" }), _jsx(Input, { label: "State/Province", value: state, onChange: setState, placeholder: "State or Province" }), _jsx(Input, { label: "Postal Code", value: postalCode, onChange: setPostalCode, placeholder: "ZIP/Postal Code" }), _jsx(Input, { label: "Country", value: country, onChange: setCountry, placeholder: "Country" })] }), _jsxs("div", { className: "flex items-end gap-2", children: [_jsxs("div", { className: "flex-1 grid grid-cols-2 gap-2", children: [_jsx(Input, { label: "Latitude", value: latitude, onChange: setLatitude, placeholder: "Auto-filled via geocoding", error: fieldErrors.latitude }), _jsx(Input, { label: "Longitude", value: longitude, onChange: setLongitude, placeholder: "Auto-filled via geocoding", error: fieldErrors.longitude })] }), _jsxs(Button, { type: "button", variant: "secondary", onClick: handleGeocode, disabled: geocoding, children: [_jsx(MapPin, { size: 16, className: "mr-2" }), geocoding ? 'Geocoding...' : 'Lookup Coordinates'] })] })] })] }), (latitude || longitude) && (_jsxs(Card, { children: [_jsx("h3", { className: "text-lg font-semibold mb-4", children: "Map Preview" }), _jsx(LocationMap, { location: currentLocation, height: "300px" })] })), _jsxs(Card, { children: [_jsx("h3", { className: "text-lg font-semibold mb-4", children: "Settings" }), _jsxs("div", { className: "space-y-4", children: [_jsx(LocationSelector, { value: parentId, onChange: setParentId, placeholder: "Select parent location (optional)", excludeId: id, allowClear: true }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium mb-2", children: "Location Type" }), _jsx(Select, { value: locationTypeId || '', onChange: (val) => setLocationTypeId(val || null), options: [
+                                                    { value: '', label: 'No Type' },
+                                                    ...types.map(type => ({ value: type.id, label: type.name })),
+                                                ] })] }), _jsx("div", { className: "space-y-2", children: _jsx(Checkbox, { checked: isActive, onChange: setIsActive, label: "Active" }) })] })] }), _jsxs("div", { className: "flex items-center justify-end gap-3 pt-4 mt-4 border-t border-gray-800", children: [_jsx(Button, { type: "button", variant: "secondary", onClick: handleCancel, children: "Cancel" }), _jsxs(Button, { type: "submit", variant: "primary", loading: saving, children: [_jsx(Save, { size: 16, className: "mr-2" }), isNew ? 'Create Location' : 'Save Changes'] })] })] })] }));
 }
 export default LocationEdit;
 //# sourceMappingURL=Edit.js.map

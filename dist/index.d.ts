@@ -16,9 +16,10 @@
  * <Route path="/locations/:id/edit" element={<LocationEdit id={params.id} />} />
  * ```
  */
-export { LocationList, LocationListPage, LocationDetail, LocationDetailPage, LocationEdit, LocationEditPage, } from './pages/index';
+export { LocationDashboard, LocationDashboardPage, LocationList, LocationListPage, LocationDetail, LocationDetailPage, LocationEdit, LocationEditPage, LocationTypes, LocationTypesPage, } from './pages/index';
+export { LocationDashboard as Dashboard } from './pages/Dashboard';
 export * from './components/index';
 export * from './hooks/index';
 export { navContributions as nav } from './nav';
-export { locations, locationUserMemberships, type Location, type InsertLocation, type UpdateLocation, type LocationUserMembership, type InsertLocationUserMembership, type UpdateLocationUserMembership, } from './schema/locations';
+export { locationTypes, locations, locationUserMemberships, type LocationType, type InsertLocationType, type UpdateLocationType, type Location, type InsertLocation, type UpdateLocation, type LocationUserMembership, type InsertLocationUserMembership, type UpdateLocationUserMembership, DEFAULT_LOCATION_TYPES, } from './schema/locations';
 //# sourceMappingURL=index.d.ts.map

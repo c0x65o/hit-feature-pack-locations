@@ -13,7 +13,7 @@ export interface Location {
     latitude: string | null;
     longitude: string | null;
     parentId: string | null;
-    isPrimary: boolean;
+    locationTypeId: string | null;
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
@@ -42,7 +42,7 @@ interface UseQueryOptions {
     sortOrder?: 'asc' | 'desc';
     parentId?: string | null;
     isActive?: boolean;
-    isPrimary?: boolean;
+    locationTypeId?: string | null;
 }
 interface LocationTree {
     location: Location;
@@ -70,18 +70,17 @@ export declare function useLocationMutations(): {
     createLocation: (data: Partial<Location>) => Promise<Location>;
     updateLocation: (id: string, data: Partial<Location>) => Promise<Location>;
     deleteLocation: (id: string) => Promise<void>;
-    setPrimaryLocation: (id: string) => Promise<Location>;
     loading: boolean;
     error: Error | null;
 };
-export declare function useLocationMemberships(): {
+export declare function useLocationMemberships(locationId?: string): {
     memberships: LocationUserMembership[] | null;
     loading: boolean;
     error: Error | null;
     refresh: () => Promise<void>;
 };
 export declare function useLocationMembershipMutations(): {
-    assignLocation: (locationId: string, isDefault?: boolean) => Promise<LocationUserMembership>;
+    assignLocation: (locationId: string, userKey: string, isDefault?: boolean) => Promise<LocationUserMembership>;
     removeMembership: (membershipId: string) => Promise<void>;
     loading: boolean;
     error: Error | null;

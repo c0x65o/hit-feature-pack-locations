@@ -7,9 +7,12 @@ import {
   Edit,
   Trash2,
   Building2,
+  MapPin,
 } from 'lucide-react';
 import { useUi } from '@hit/ui-kit';
 import { useLocations, useLocationMutations, type Location } from '../hooks/useLocations';
+import { useLocationTypes } from '../hooks/useLocationTypes';
+import { LocationMap } from '../components/LocationMap';
 
 interface LocationListProps {
   onNavigate?: (path: string) => void;
@@ -18,7 +21,7 @@ interface LocationListProps {
 export function LocationList({
   onNavigate,
 }: LocationListProps) {
-  const { Page, Card, Button, DataTable, Badge, Alert, Input } = useUi();
+  const { Page, Card, Button, DataTable, Badge, Alert } = useUi();
   
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
@@ -31,7 +34,8 @@ export function LocationList({
     search: search || undefined,
   });
   
-  const { deleteLocation, setPrimaryLocation, loading: mutating } = useLocationMutations();
+  const { types } = useLocationTypes();
+  const { deleteLocation, loading: mutating } = useLocationMutations();
 
   const navigate = (path: string) => {
     if (onNavigate) {
@@ -53,14 +57,6 @@ export function LocationList({
     }
   };
 
-  const handleSetPrimary = async (id: string) => {
-    try {
-      await setPrimaryLocation(id);
-      refresh();
-    } catch {
-      // Error handled by hook
-    }
-  };
 
   const formatAddress = (location: Pick<Location, 'address' | 'city' | 'state' | 'postalCode'>) => {
     const parts = [
@@ -71,6 +67,11 @@ export function LocationList({
     ].filter(Boolean);
     return parts.length > 0 ? parts.join(', ') : 'No address';
   };
+
+  // Filter locations with coordinates for the map
+  const locationsWithCoords = (data?.items || []).filter(
+    (loc) => loc.latitude && loc.longitude
+  );
 
   return (
     <Page
@@ -90,37 +91,53 @@ export function LocationList({
         </Alert>
       )}
 
-      <Card>
-        <div className="p-4 border-b border-gray-200 dark:border-gray-800">
-          <Input
-            value={search}
-            onChange={setSearch}
-            placeholder="Search locations..."
-          />
+      {/* Map View */}
+      {locationsWithCoords.length > 0 && (
+        <div className="mb-6">
+          <Card>
+            <LocationMap
+            locations={locationsWithCoords}
+            height="500px"
+            zoom={10}
+            onLocationClick={(loc) => navigate(`/locations/${loc.id}`)}
+            />
+          </Card>
         </div>
+      )}
 
-      {/* Locations Table */}
+      <Card>
+        {/* Locations Table */}
         <DataTable
           columns={[
             {
               key: 'name',
               label: 'Name',
               sortable: true,
-              render: (_, row) => (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => navigate(`/locations/${row.id}`)}
-                    className="font-medium hover:text-blue-500 transition-colors text-left flex items-center gap-2"
-                  >
-                    {Boolean(row.isPrimary) && (
-                      <span title="Primary/HQ Location" className="inline-flex">
-                        <Building2 size={16} className="text-yellow-500" />
-                      </span>
-                    )}
-                    {row.name as string}
-                  </button>
-                </div>
-              ),
+              render: (_, row) => {
+                const hasCoords = Boolean(row.latitude && row.longitude);
+                const typeId = (row as any).locationTypeId || (row as any).location_type_id;
+                const locationType = types.find(t => t.id === typeId);
+                return (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => navigate(`/locations/${row.id}`)}
+                      className="font-medium hover:text-blue-500 transition-colors text-left flex items-center gap-2"
+                    >
+                      {locationType && (
+                        <span title={locationType.name} className="inline-flex">
+                          <MapPin size={14} style={{ color: locationType.color }} />
+                        </span>
+                      )}
+                      {hasCoords && !locationType && (
+                        <span title="Has coordinates" className="inline-flex">
+                          <MapPin size={14} className="text-blue-500" />
+                        </span>
+                      )}
+                      {row.name as string}
+                    </button>
+                  </div>
+                );
+              },
             },
             {
               key: 'code',
@@ -140,14 +157,19 @@ export function LocationList({
                 }),
             },
             {
-              key: 'isPrimary',
-              label: 'Status',
-              render: (value: unknown) =>
-                value ? (
-                  <Badge variant="success">Primary</Badge>
+              key: 'locationTypeId',
+              label: 'Type',
+              render: (_, row) => {
+                const typeId = (row as any).locationTypeId || (row as any).location_type_id;
+                const locationType = types.find(t => t.id === typeId);
+                return locationType ? (
+                  <Badge variant="default">
+                    <span style={{ color: locationType.color }}>{locationType.name}</span>
+                  </Badge>
                 ) : (
-                  <Badge variant="default">Standard</Badge>
-                ),
+                  <Badge variant="default">No Type</Badge>
+                );
+              },
             },
             {
               key: 'isActive',
@@ -173,16 +195,6 @@ export function LocationList({
                   <Button variant="ghost" size="sm" onClick={() => navigate(`/locations/${row.id}/edit`)}>
                     <Edit size={16} />
                   </Button>
-                  {!row.isPrimary && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleSetPrimary(row.id as string)}
-                      disabled={mutating}
-                    >
-                      <Building2 size={16} />
-                    </Button>
-                  )}
                   <Button
                     variant="ghost"
                     size="sm"
@@ -204,7 +216,9 @@ export function LocationList({
             state: loc.state,
             postalCode: loc.postalCode,
             country: loc.country,
-            isPrimary: loc.isPrimary,
+            latitude: loc.latitude,
+            longitude: loc.longitude,
+            locationTypeId: (loc as any).locationTypeId || (loc as any).location_type_id || null,
             isActive: loc.isActive,
           })) || []}
           emptyMessage="No locations found"

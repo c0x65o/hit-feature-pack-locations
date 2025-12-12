@@ -17,7 +17,9 @@
  * ```
  */
 // Pages - exported individually for tree-shaking
-export { LocationList, LocationListPage, LocationDetail, LocationDetailPage, LocationEdit, LocationEditPage, } from './pages/index';
+export { LocationDashboard, LocationDashboardPage, LocationList, LocationListPage, LocationDetail, LocationDetailPage, LocationEdit, LocationEditPage, LocationTypes, LocationTypesPage, } from './pages/index';
+// Dashboard alias for route matching
+export { LocationDashboard as Dashboard } from './pages/Dashboard';
 // Components - exported individually for tree-shaking
 export * from './components/index';
 // Hooks - exported individually for tree-shaking
@@ -25,5 +27,5 @@ export * from './hooks/index';
 // Navigation config
 export { navContributions as nav } from './nav';
 // Schema exports - for projects to import into their schema
-export { locations, locationUserMemberships, } from './schema/locations';
+export { locationTypes, locations, locationUserMemberships, DEFAULT_LOCATION_TYPES, } from './schema/locations';
 //# sourceMappingURL=index.js.map

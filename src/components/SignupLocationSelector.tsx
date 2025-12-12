@@ -94,7 +94,7 @@ export function SignupLocationSelector({
     }
 
     try {
-      await assignLocation(locationId, true); // Set as default
+      await assignLocation(locationId, userEmail, true); // Set as default
       if (onSignupComplete) {
         await onSignupComplete(userEmail, locationId);
       }

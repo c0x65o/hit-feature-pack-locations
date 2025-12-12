@@ -34,7 +34,7 @@ export function useLocations(options = {}) {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const { page = 1, pageSize = 25, search, sortBy, sortOrder, parentId, isActive, isPrimary } = options;
+    const { page = 1, pageSize = 25, search, sortBy, sortOrder, parentId, isActive, locationTypeId } = options;
     const refresh = useCallback(async () => {
         try {
             setLoading(true);
@@ -52,8 +52,8 @@ export function useLocations(options = {}) {
                 params.set('parentId', parentId || '');
             if (isActive !== undefined)
                 params.set('isActive', String(isActive));
-            if (isPrimary !== undefined)
-                params.set('isPrimary', String(isPrimary));
+            if (locationTypeId !== undefined)
+                params.set('locationTypeId', locationTypeId || '');
             const result = await fetchApi(`?${params}`);
             setData(result);
             setError(null);
@@ -64,7 +64,7 @@ export function useLocations(options = {}) {
         finally {
             setLoading(false);
         }
-    }, [page, pageSize, search, sortBy, sortOrder, parentId, isActive, isPrimary]);
+    }, [page, pageSize, search, sortBy, sortOrder, parentId, isActive, locationTypeId]);
     useEffect(() => {
         refresh();
     }, [refresh]);
@@ -175,40 +175,23 @@ export function useLocationMutations() {
             setLoading(false);
         }
     };
-    const setPrimaryLocation = async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await fetchApi(`/${id}/set-primary`, {
-                method: 'POST',
-            });
-            return result;
-        }
-        catch (e) {
-            setError(e);
-            throw e;
-        }
-        finally {
-            setLoading(false);
-        }
-    };
     return {
         createLocation,
         updateLocation,
         deleteLocation,
-        setPrimaryLocation,
         loading,
         error,
     };
 }
-export function useLocationMemberships() {
+export function useLocationMemberships(locationId) {
     const [memberships, setMemberships] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const refresh = useCallback(async () => {
         try {
             setLoading(true);
-            const data = await fetchApi('/memberships');
+            const endpoint = locationId ? `/memberships?locationId=${locationId}` : '/memberships';
+            const data = await fetchApi(endpoint);
             setMemberships(data);
             setError(null);
         }
@@ -218,7 +201,7 @@ export function useLocationMemberships() {
         finally {
             setLoading(false);
         }
-    }, []);
+    }, [locationId]);
     useEffect(() => {
         refresh();
     }, [refresh]);
@@ -227,13 +210,13 @@ export function useLocationMemberships() {
 export function useLocationMembershipMutations() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const assignLocation = async (locationId, isDefault) => {
+    const assignLocation = async (locationId, userKey, isDefault) => {
         setLoading(true);
         setError(null);
         try {
             const result = await fetchApi('/memberships', {
                 method: 'POST',
-                body: JSON.stringify({ locationId, isDefault }),
+                body: JSON.stringify({ locationId, userKey, isDefault }),
             });
             return result;
         }

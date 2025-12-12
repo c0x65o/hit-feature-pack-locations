@@ -8,8 +8,11 @@ description: Locations feature pack with hierarchical locations, user assignment
 # Route definitions - mapped to React components
 routes:
   - path: /locations
-    page: LocationList
+    page: Dashboard
     roles: []  # Empty = authenticated users only
+  - path: /locations/list
+    page: LocationList
+    roles: []
   - path: /locations/new
     page: LocationEdit
     roles: []
@@ -18,6 +21,9 @@ routes:
     roles: []
   - path: /locations/[id]/edit
     page: LocationEdit
+    roles: []
+  - path: /locations/types
+    page: LocationTypes
     roles: []
 
 # Navigation contributions - auto-added to shell sidebar
@@ -29,12 +35,31 @@ nav:
     group: main  # Primary business features
     showWhen: authenticated
     weight: 150  # Primary content near top (lower weight = higher position)
+    children:
+      - id: locations-dashboard
+        label: Dashboard
+        path: /locations
+        icon: LayoutDashboard
+        weight: 100
+        showWhen: authenticated
+      - id: locations-list
+        label: All Locations
+        path: /locations/list
+        icon: MapPin
+        weight: 110
+        showWhen: authenticated
+      - id: locations-types
+        label: Location Types
+        path: /locations/types
+        icon: Tag
+        weight: 120
+        showWhen: authenticated
 
 # Schema contributions (Drizzle tables)
 # Projects import these into their schema
 schema:
   source: src/schema/locations.ts
-  exports: [locations, locationUserMemberships, Location, InsertLocation, UpdateLocation, LocationUserMembership, InsertLocationUserMembership, UpdateLocationUserMembership]
+  exports: [locationTypes, locations, locationUserMemberships, LocationType, InsertLocationType, UpdateLocationType, Location, InsertLocation, UpdateLocation, LocationUserMembership, InsertLocationUserMembership, UpdateLocationUserMembership, DEFAULT_LOCATION_TYPES]
 
 # API routes the feature pack expects
 # Projects create these routes using the schema
@@ -49,15 +74,21 @@ api:
     - path: /api/locations/tree
       methods: [GET]
       description: "Get locations in hierarchical tree structure"
-    - path: /api/locations/[id]/set-primary
-      methods: [POST]
-      description: "Set location as primary/HQ location"
+    - path: /api/locations/types
+      methods: [GET, POST]
+      description: "List location types (GET) or create type (POST)"
+    - path: /api/locations/types/[id]
+      methods: [GET, PUT, DELETE]
+      description: "Get, update, or delete a specific location type"
     - path: /api/locations/memberships
       methods: [GET, POST]
-      description: "Get user's location memberships (GET) or assign user to location (POST)"
+      description: "Get location memberships (GET) or assign user to location (POST). GET supports ?locationId=xxx filter"
     - path: /api/locations/memberships/[id]
       methods: [DELETE]
       description: "Remove user from location"
+    - path: /api/locations/[id]/memberships
+      methods: [GET]
+      description: "Get all users assigned to a specific location"
     - path: /api/locations/geocode
       methods: [POST]
       description: "Geocode address to latitude/longitude"

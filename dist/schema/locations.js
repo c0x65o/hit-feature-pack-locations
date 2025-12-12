@@ -13,6 +13,31 @@
  */
 import { pgTable, varchar, text, timestamp, boolean, uuid, decimal, index } from "drizzle-orm/pg-core";
 /**
+ * Location Types table - stores location type definitions with icons
+ */
+export const locationTypes = pgTable("location_types", {
+    /** Unique identifier for the location type */
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** Type name (e.g., "Headquarters", "Warehouse", "Store") */
+    name: varchar("name", { length: 100 }).notNull(),
+    /** Type code/identifier */
+    code: varchar("code", { length: 50 }).notNull().unique(),
+    /** Icon name from lucide-react or custom SVG */
+    icon: varchar("icon", { length: 100 }).notNull(),
+    /** Icon color (hex code) */
+    color: varchar("color", { length: 7 }).notNull().default("#3b82f6"),
+    /** Description of the location type */
+    description: text("description"),
+    /** Whether this is a system type (cannot be deleted) */
+    isSystem: boolean("is_system").notNull().default(false),
+    /** When the type was created */
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    /** When the type was last updated */
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+    codeIdx: index("location_types_code_idx").on(table.code),
+}));
+/**
  * Locations table - stores business locations
  *
  * Features:
@@ -49,10 +74,10 @@ export const locations = pgTable("locations", {
     // Self-referencing foreign key: provide explicit return type to avoid TS circular inference issues
     parentId: uuid("parent_id").references(() => locations.id, { onDelete: "set null" }),
     /**
-     * Whether this is the primary/HQ location
-     * Only one location should be primary at a time (enforced in API layer)
+     * Location type ID - FK to location_types table
+     * Determines the icon and category of the location
      */
-    isPrimary: boolean("is_primary").notNull().default(false),
+    locationTypeId: uuid("location_type_id").references(() => locationTypes.id, { onDelete: "set null" }),
     /** Whether the location is active */
     isActive: boolean("is_active").notNull().default(true),
     /** When the location was created */
@@ -63,7 +88,7 @@ export const locations = pgTable("locations", {
     // Indexes for common queries
     codeIdx: index("locations_code_idx").on(table.code),
     parentIdx: index("locations_parent_idx").on(table.parentId),
-    primaryIdx: index("locations_primary_idx").on(table.isPrimary),
+    typeIdx: index("locations_type_idx").on(table.locationTypeId),
     activeIdx: index("locations_active_idx").on(table.isActive),
 }));
 /**
@@ -95,4 +120,50 @@ export const locationUserMemberships = pgTable("location_user_memberships", {
     locationIdx: index("location_memberships_location_idx").on(table.locationId),
     defaultIdx: index("location_memberships_default_idx").on(table.isDefault),
 }));
+/**
+ * Default location types to be seeded
+ * These are inserted via migration or API initialization
+ */
+export const DEFAULT_LOCATION_TYPES = [
+    {
+        name: "Headquarters",
+        code: "hq",
+        icon: "Building2",
+        color: "#fbbf24",
+        description: "Main headquarters or corporate office",
+        isSystem: true,
+    },
+    {
+        name: "Warehouse",
+        code: "warehouse",
+        icon: "Package",
+        color: "#3b82f6",
+        description: "Storage and distribution facility",
+        isSystem: true,
+    },
+    {
+        name: "Store",
+        code: "store",
+        icon: "ShoppingBag",
+        color: "#10b981",
+        description: "Retail store location",
+        isSystem: true,
+    },
+    {
+        name: "Office",
+        code: "office",
+        icon: "Building",
+        color: "#6366f1",
+        description: "General office location",
+        isSystem: true,
+    },
+    {
+        name: "Factory",
+        code: "factory",
+        icon: "Cog",
+        color: "#ef4444",
+        description: "Manufacturing facility",
+        isSystem: true,
+    },
+];
 //# sourceMappingURL=locations.js.map

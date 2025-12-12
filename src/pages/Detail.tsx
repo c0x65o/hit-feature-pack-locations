@@ -11,6 +11,7 @@ import {
 import { useUi } from '@hit/ui-kit';
 import { useLocation, useLocationMutations } from '../hooks/useLocations';
 import { LocationMap } from '../components/LocationMap';
+import { LocationUsers } from '../components/LocationUsers';
 
 interface LocationDetailProps {
   id?: string;
@@ -117,12 +118,6 @@ export function LocationDetail({
     >
       {/* Status Badges */}
       <div className="flex items-center gap-2 mb-4">
-        {location.isPrimary && (
-          <Badge variant="success">
-            <Building2 size={14} className="mr-1" />
-            Primary Location
-          </Badge>
-        )}
         {location.isActive ? (
           <Badge variant="success">Active</Badge>
         ) : (
@@ -169,14 +164,19 @@ export function LocationDetail({
 
       {/* Map */}
       {location.latitude && location.longitude && (
-        <Card>
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <MapPin size={20} />
-            Map View
-          </h3>
-          <LocationMap location={location} height="400px" />
-        </Card>
+        <div className="mb-4">
+          <Card>
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <MapPin size={20} />
+              Map View
+            </h3>
+            <LocationMap location={location} height="400px" />
+          </Card>
+        </div>
       )}
+
+      {/* Associated Users */}
+      <LocationUsers locationId={location.id} />
     </Page>
   );
 }

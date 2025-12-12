@@ -6,5 +6,11 @@ export declare const navContributions: {
     label: string;
     path: string;
     icon: string;
+    children: {
+        id: string;
+        label: string;
+        path: string;
+        icon: string;
+    }[];
 }[];
 //# sourceMappingURL=nav.d.ts.map

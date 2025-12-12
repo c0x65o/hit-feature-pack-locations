@@ -12,6 +12,124 @@
  * @ui-edit fields: name(text, required), code(text), address(textarea), city(text), state(text), postalCode(text), country(text), parentId(select), isPrimary(checkbox)
  */
 /**
+ * Location Types table - stores location type definitions with icons
+ */
+export declare const locationTypes: import("drizzle-orm/pg-core").PgTableWithColumns<{
+    name: "location_types";
+    schema: undefined;
+    columns: {
+        id: import("drizzle-orm/pg-core").PgColumn<{
+            name: "id";
+            tableName: "location_types";
+            dataType: "string";
+            columnType: "PgUUID";
+            data: string;
+            driverParam: string;
+            notNull: true;
+            hasDefault: true;
+            enumValues: undefined;
+            baseColumn: never;
+        }, {}, {}>;
+        name: import("drizzle-orm/pg-core").PgColumn<{
+            name: "name";
+            tableName: "location_types";
+            dataType: "string";
+            columnType: "PgVarchar";
+            data: string;
+            driverParam: string;
+            notNull: true;
+            hasDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+        }, {}, {}>;
+        code: import("drizzle-orm/pg-core").PgColumn<{
+            name: "code";
+            tableName: "location_types";
+            dataType: "string";
+            columnType: "PgVarchar";
+            data: string;
+            driverParam: string;
+            notNull: true;
+            hasDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+        }, {}, {}>;
+        icon: import("drizzle-orm/pg-core").PgColumn<{
+            name: "icon";
+            tableName: "location_types";
+            dataType: "string";
+            columnType: "PgVarchar";
+            data: string;
+            driverParam: string;
+            notNull: true;
+            hasDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+        }, {}, {}>;
+        color: import("drizzle-orm/pg-core").PgColumn<{
+            name: "color";
+            tableName: "location_types";
+            dataType: "string";
+            columnType: "PgVarchar";
+            data: string;
+            driverParam: string;
+            notNull: true;
+            hasDefault: true;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+        }, {}, {}>;
+        description: import("drizzle-orm/pg-core").PgColumn<{
+            name: "description";
+            tableName: "location_types";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+        }, {}, {}>;
+        isSystem: import("drizzle-orm/pg-core").PgColumn<{
+            name: "is_system";
+            tableName: "location_types";
+            dataType: "boolean";
+            columnType: "PgBoolean";
+            data: boolean;
+            driverParam: boolean;
+            notNull: true;
+            hasDefault: true;
+            enumValues: undefined;
+            baseColumn: never;
+        }, {}, {}>;
+        createdAt: import("drizzle-orm/pg-core").PgColumn<{
+            name: "created_at";
+            tableName: "location_types";
+            dataType: "date";
+            columnType: "PgTimestamp";
+            data: Date;
+            driverParam: string;
+            notNull: true;
+            hasDefault: true;
+            enumValues: undefined;
+            baseColumn: never;
+        }, {}, {}>;
+        updatedAt: import("drizzle-orm/pg-core").PgColumn<{
+            name: "updated_at";
+            tableName: "location_types";
+            dataType: "date";
+            columnType: "PgTimestamp";
+            data: Date;
+            driverParam: string;
+            notNull: true;
+            hasDefault: true;
+            enumValues: undefined;
+            baseColumn: never;
+        }, {}, {}>;
+    };
+    dialect: "pg";
+}>;
+/**
  * Locations table - stores business locations
  *
  * Features:
@@ -156,15 +274,15 @@ export declare const locations: import("drizzle-orm/pg-core").PgTableWithColumns
             enumValues: undefined;
             baseColumn: never;
         }, {}, {}>;
-        isPrimary: import("drizzle-orm/pg-core").PgColumn<{
-            name: "is_primary";
+        locationTypeId: import("drizzle-orm/pg-core").PgColumn<{
+            name: "location_type_id";
             tableName: "locations";
-            dataType: "boolean";
-            columnType: "PgBoolean";
-            data: boolean;
-            driverParam: boolean;
-            notNull: true;
-            hasDefault: true;
+            dataType: "string";
+            columnType: "PgUUID";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
             enumValues: undefined;
             baseColumn: never;
         }, {}, {}>;
@@ -280,10 +398,18 @@ export declare const locationUserMemberships: import("drizzle-orm/pg-core").PgTa
     };
     dialect: "pg";
 }>;
+export type LocationType = typeof locationTypes.$inferSelect;
+export type InsertLocationType = typeof locationTypes.$inferInsert;
+export type UpdateLocationType = Partial<Omit<InsertLocationType, "id" | "createdAt">>;
 export type Location = typeof locations.$inferSelect;
 export type InsertLocation = typeof locations.$inferInsert;
 export type UpdateLocation = Partial<Omit<InsertLocation, "id" | "createdAt">>;
 export type LocationUserMembership = typeof locationUserMemberships.$inferSelect;
 export type InsertLocationUserMembership = typeof locationUserMemberships.$inferInsert;
 export type UpdateLocationUserMembership = Partial<Omit<InsertLocationUserMembership, "id" | "createdAt">>;
+/**
+ * Default location types to be seeded
+ * These are inserted via migration or API initialization
+ */
+export declare const DEFAULT_LOCATION_TYPES: Omit<InsertLocationType, "id" | "createdAt" | "updatedAt">[];
 //# sourceMappingURL=locations.d.ts.map

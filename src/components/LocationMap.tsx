@@ -7,9 +7,34 @@
 
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useUi } from '@hit/ui-kit';
 import type { Location } from '../hooks/useLocations';
+import { useLocationTypes } from '../hooks/useLocationTypes';
+
+// Dynamically import Leaflet components to avoid SSR issues
+let MapContainer: any;
+let TileLayer: any;
+let Marker: any;
+let Popup: any;
+
+if (typeof window !== 'undefined') {
+  try {
+    // Import Leaflet CSS
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    require('leaflet/dist/leaflet.css');
+    
+    // Dynamically import react-leaflet components
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const reactLeaflet = require('react-leaflet');
+    MapContainer = reactLeaflet.MapContainer;
+    TileLayer = reactLeaflet.TileLayer;
+    Marker = reactLeaflet.Marker;
+    Popup = reactLeaflet.Popup;
+  } catch (e) {
+    // Leaflet not available
+  }
+}
 
 interface LocationMapProps {
   location?: Location | null;
@@ -17,6 +42,52 @@ interface LocationMapProps {
   height?: string;
   zoom?: number;
   onLocationClick?: (location: Location) => void;
+}
+
+// Create custom icon for location type
+function createIcon(locationType: { icon: string; color: string; name: string; code: string } | null) {
+  if (typeof window === 'undefined') return null;
+  
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const L = require('leaflet');
+  
+  // Fix default icon path issue
+  delete (L.Icon.Default.prototype as any)._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  });
+  
+  // Create custom div icon with colored markers
+  const color = locationType?.color || '#3b82f6';
+  const borderColor = locationType?.color || '#2563eb';
+  const label = locationType?.code === 'hq' ? 'HQ' : '•';
+  
+  return L.divIcon({
+    className: 'custom-marker',
+    html: `
+      <div style="
+        width: 24px;
+        height: 24px;
+        background-color: ${color};
+        border: 3px solid ${borderColor};
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 12px;
+      ">
+        ${label}
+      </div>
+    `,
+    iconSize: [24, 24],
+    iconAnchor: [12, 24],
+    popupAnchor: [0, -24],
+  });
 }
 
 export function LocationMap({
@@ -27,33 +98,44 @@ export function LocationMap({
   onLocationClick,
 }: LocationMapProps) {
   const { Alert } = useUi();
-  const mapRef = useRef<HTMLDivElement>(null);
   const [mapError, setMapError] = useState<string | null>(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const { types } = useLocationTypes();
 
   // Determine which location(s) to show
-  const locationsToShow = location ? [location] : locations;
+  const locationsToShow = useMemo(() => {
+    return (location ? [location] : locations).filter(
+      (loc) => loc.latitude && loc.longitude
+    );
+  }, [location, locations]);
+
+  useEffect(() => {
+    setIsClient(true);
+    
+    // Check if Leaflet is available
+    if (typeof window !== 'undefined' && !MapContainer) {
+      setMapError('Map library not available. Please install leaflet and react-leaflet.');
+    }
+  }, []);
 
   useEffect(() => {
     // Check if we have valid coordinates
-    const hasCoordinates = locationsToShow.some(
-      (loc) => loc.latitude && loc.longitude
-    );
-
-    if (!hasCoordinates) {
-      setMapError('No coordinates available for this location');
+    if (locationsToShow.length === 0) {
+      setMapError('No coordinates available for locations');
       return;
     }
-
-    // Try to load Leaflet dynamically
-    // In a real implementation, you'd import leaflet and react-leaflet
-    // For now, we'll show a placeholder that indicates map would go here
-    setMapLoaded(true);
-    setMapError(null);
-
-    // Note: Actual Leaflet implementation would go here
-    // This is a placeholder that shows the structure
+    if (MapContainer) {
+      setMapError(null);
+    }
   }, [locationsToShow]);
+
+  if (!isClient) {
+    return (
+      <div style={{ height }} className="flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700">
+        <div className="text-gray-500 dark:text-gray-400">Loading map...</div>
+      </div>
+    );
+  }
 
   if (mapError) {
     return (
@@ -65,40 +147,79 @@ export function LocationMap({
     );
   }
 
-  if (!mapLoaded) {
+  if (!MapContainer || !TileLayer || !Marker || !Popup) {
     return (
       <div style={{ height }} className="flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700">
-        <div className="text-gray-500 dark:text-gray-400">Loading map...</div>
+        <Alert variant="warning" title="Map unavailable">
+          Map library not installed. Please install leaflet and react-leaflet packages.
+        </Alert>
       </div>
     );
   }
 
-  // Placeholder for actual map implementation
-  // In production, this would render a Leaflet map
+  // Calculate center and bounds
+  const centerLat = locationsToShow.reduce((sum, loc) => sum + parseFloat(loc.latitude!), 0) / locationsToShow.length;
+  const centerLng = locationsToShow.reduce((sum, loc) => sum + parseFloat(loc.longitude!), 0) / locationsToShow.length;
+  
+  // Calculate bounds for multiple locations
+  const bounds = locationsToShow.length > 1
+    ? locationsToShow.map((loc) => [parseFloat(loc.latitude!), parseFloat(loc.longitude!)] as [number, number])
+    : undefined;
+
   return (
-    <div
-      ref={mapRef}
-      style={{ height }}
-      className="bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700 relative overflow-hidden"
-    >
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="text-center text-gray-500 dark:text-gray-400">
-          <div className="text-lg font-semibold mb-2">Map View</div>
-          <div className="text-sm">
-            {location
-              ? `Location: ${location.name}`
-              : `${locationsToShow.length} location(s)`}
-          </div>
-          {location?.latitude && location?.longitude && (
-            <div className="text-xs mt-2">
-              Coordinates: {location.latitude}, {location.longitude}
-            </div>
-          )}
-          <div className="text-xs mt-4 text-gray-400">
-            Leaflet map integration would be rendered here
-          </div>
-        </div>
-      </div>
+    <div style={{ height }} className="rounded-lg border border-gray-300 dark:border-gray-700 overflow-hidden">
+      <MapContainer
+        center={[centerLat, centerLng]}
+        zoom={locationsToShow.length === 1 ? zoom : undefined}
+        bounds={bounds}
+        style={{ height, width: '100%' }}
+        scrollWheelZoom={true}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        {locationsToShow.map((loc) => {
+          const lat = parseFloat(loc.latitude!);
+          const lng = parseFloat(loc.longitude!);
+  const typeId = (loc as any).locationTypeId || (loc as any).location_type_id;
+  const locationType = types.find(t => t.id === typeId);
+  const icon = createIcon(locationType ? { icon: locationType.icon, color: locationType.color, name: locationType.name, code: locationType.code } : null);
+          
+          return (
+            <Marker
+              key={loc.id}
+              position={[lat, lng]}
+              icon={icon}
+              eventHandlers={{
+                click: () => {
+                  if (onLocationClick) {
+                    onLocationClick(loc);
+                  }
+                },
+              }}
+            >
+              <Popup>
+                <div className="text-sm">
+                  <div className="font-semibold">{loc.name}</div>
+                  {locationType && (
+                    <div className="text-xs mt-1" style={{ color: locationType.color }}>
+                      {locationType.name}
+                    </div>
+                  )}
+                  {loc.address && (
+                    <div className="text-gray-600 dark:text-gray-400 text-xs mt-1">
+                      {loc.address}
+                      {loc.city && `, ${loc.city}`}
+                      {loc.state && `, ${loc.state}`}
+                    </div>
+                  )}
+                </div>
+              </Popup>
+            </Marker>
+          );
+        })}
+      </MapContainer>
     </div>
   );
 }

@@ -18,7 +18,7 @@ export interface Location {
   latitude: string | null;
   longitude: string | null;
   parentId: string | null;
-  isPrimary: boolean;
+  locationTypeId: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -50,7 +50,7 @@ interface UseQueryOptions {
   sortOrder?: 'asc' | 'desc';
   parentId?: string | null;
   isActive?: boolean;
-  isPrimary?: boolean;
+  locationTypeId?: string | null;
 }
 
 interface LocationTree {
@@ -95,7 +95,7 @@ export function useLocations(options: UseQueryOptions = {}) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const { page = 1, pageSize = 25, search, sortBy, sortOrder, parentId, isActive, isPrimary } = options;
+  const { page = 1, pageSize = 25, search, sortBy, sortOrder, parentId, isActive, locationTypeId } = options;
 
   const refresh = useCallback(async () => {
     try {
@@ -109,7 +109,7 @@ export function useLocations(options: UseQueryOptions = {}) {
       if (sortOrder) params.set('sortOrder', sortOrder);
       if (parentId !== undefined) params.set('parentId', parentId || '');
       if (isActive !== undefined) params.set('isActive', String(isActive));
-      if (isPrimary !== undefined) params.set('isPrimary', String(isPrimary));
+      if (locationTypeId !== undefined) params.set('locationTypeId', locationTypeId || '');
 
       const result = await fetchApi<PaginatedResponse<Location>>(`?${params}`);
       setData(result);
@@ -119,7 +119,7 @@ export function useLocations(options: UseQueryOptions = {}) {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, search, sortBy, sortOrder, parentId, isActive, isPrimary]);
+  }, [page, pageSize, search, sortBy, sortOrder, parentId, isActive, locationTypeId]);
 
   useEffect(() => {
     refresh();
@@ -235,33 +235,16 @@ export function useLocationMutations() {
     }
   };
 
-  const setPrimaryLocation = async (id: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await fetchApi<Location>(`/${id}/set-primary`, {
-        method: 'POST',
-      });
-      return result;
-    } catch (e) {
-      setError(e as Error);
-      throw e;
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return {
     createLocation,
     updateLocation,
     deleteLocation,
-    setPrimaryLocation,
     loading,
     error,
   };
 }
 
-export function useLocationMemberships() {
+export function useLocationMemberships(locationId?: string) {
   const [memberships, setMemberships] = useState<LocationUserMembership[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -269,7 +252,8 @@ export function useLocationMemberships() {
   const refresh = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await fetchApi<LocationUserMembership[]>('/memberships');
+      const endpoint = locationId ? `/memberships?locationId=${locationId}` : '/memberships';
+      const data = await fetchApi<LocationUserMembership[]>(endpoint);
       setMemberships(data);
       setError(null);
     } catch (e) {
@@ -277,7 +261,7 @@ export function useLocationMemberships() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [locationId]);
 
   useEffect(() => {
     refresh();
@@ -290,13 +274,13 @@ export function useLocationMembershipMutations() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const assignLocation = async (locationId: string, isDefault?: boolean) => {
+  const assignLocation = async (locationId: string, userKey: string, isDefault?: boolean) => {
     setLoading(true);
     setError(null);
     try {
       const result = await fetchApi<LocationUserMembership>('/memberships', {
         method: 'POST',
-        body: JSON.stringify({ locationId, isDefault }),
+        body: JSON.stringify({ locationId, userKey, isDefault }),
       });
       return result;
     } catch (e) {

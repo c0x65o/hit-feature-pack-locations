@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Save, MapPin } from 'lucide-react';
 import { useUi } from '@hit/ui-kit';
 import { useLocation, useLocationMutations, type Location } from '../hooks/useLocations';
+import { useLocationTypes } from '../hooks/useLocationTypes';
 import { useGeocode } from '../hooks/useGeocoding';
 import { LocationSelector } from '../components/LocationSelector';
 import { LocationMap } from '../components/LocationMap';
@@ -17,11 +18,12 @@ export function LocationEdit({
   id,
   onNavigate,
 }: LocationEditProps) {
-  const { Page, Card, Button, Input, TextArea, Alert, Spinner, Checkbox } = useUi();
+  const { Page, Card, Button, Input, TextArea, Alert, Spinner, Checkbox, Select } = useUi();
   
   const isNew = !id || id === 'new';
   const { location, loading: loadingLocation, error: loadError } = useLocation(isNew ? undefined : id);
   const { createLocation, updateLocation, loading: saving, error: saveError } = useLocationMutations();
+  const { types } = useLocationTypes();
   const { geocode, loading: geocoding } = useGeocode();
 
   const [name, setName] = useState('');
@@ -34,7 +36,7 @@ export function LocationEdit({
   const [latitude, setLatitude] = useState<string>('');
   const [longitude, setLongitude] = useState<string>('');
   const [parentId, setParentId] = useState<string | null>(null);
-  const [isPrimary, setIsPrimary] = useState(false);
+  const [locationTypeId, setLocationTypeId] = useState<string | null>(null);
   const [isActive, setIsActive] = useState(true);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
@@ -51,7 +53,7 @@ export function LocationEdit({
       setLatitude(location.latitude || '');
       setLongitude(location.longitude || '');
       setParentId(location.parentId);
-      setIsPrimary(location.isPrimary);
+      setLocationTypeId((location as any).locationTypeId || (location as any).location_type_id || null);
       setIsActive(location.isActive);
     }
   }, [location]);
@@ -122,7 +124,7 @@ export function LocationEdit({
       latitude: latitude || null,
       longitude: longitude || null,
       parentId,
-      isPrimary,
+      locationTypeId,
       isActive,
     };
 
@@ -315,13 +317,19 @@ export function LocationEdit({
               allowClear
             />
 
-            <div className="space-y-2">
-              <Checkbox
-                checked={isPrimary}
-                onChange={setIsPrimary}
-                label="Set as primary/HQ location"
+            <div>
+              <label className="block text-sm font-medium mb-2">Location Type</label>
+              <Select
+                value={locationTypeId || ''}
+                onChange={(val) => setLocationTypeId(val || null)}
+                options={[
+                  { value: '', label: 'No Type' },
+                  ...types.map(type => ({ value: type.id, label: type.name })),
+                ]}
               />
+            </div>
 
+            <div className="space-y-2">
               <Checkbox
                 checked={isActive}
                 onChange={setIsActive}
