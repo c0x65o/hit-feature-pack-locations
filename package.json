@@ -1,6 +1,6 @@
 {
   "name": "@hit/feature-pack-locations",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Locations feature pack with hierarchical locations, user assignments, map visualization, and geocoding. Uses @hit/ui-kit for shell-agnostic UI.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -35,7 +35,6 @@
     "dev": "tsc --watch",
     "prepublishOnly": "npm run build"
   },
-  "dependencies": {},
   "peerDependencies": {
     "@hit/ui-kit": "*",
     "react": "^18.0.0 || ^19.0.0",
