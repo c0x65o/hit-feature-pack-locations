@@ -9,9 +9,11 @@ import {
   ShoppingBag,
   Building,
   Cog,
+  Tag,
+  Users,
 } from 'lucide-react';
 import { useUi } from '@hit/ui-kit';
-import { useLocations } from '../hooks/useLocations';
+import { useLocations, useLocationMemberships } from '../hooks/useLocations';
 import { useLocationTypes } from '../hooks/useLocationTypes';
 import { LocationMap } from '../components/LocationMap';
 
@@ -41,6 +43,7 @@ export function LocationDashboard({
   });
   
   const { types } = useLocationTypes();
+  const { memberships } = useLocationMemberships();
 
   const navigate = (path: string) => {
     if (onNavigate) {
@@ -56,6 +59,48 @@ export function LocationDashboard({
   const locationsWithCoords = data?.items.filter(
     (loc) => loc.latitude && loc.longitude
   ).length || 0;
+  const totalLocationTypes = types.length;
+  
+  // Calculate unassociated users
+  // Get unique users from memberships
+  const associatedUsers = new Set(memberships?.map(m => m.userKey) || []);
+  const associatedUsersCount = associatedUsers.size;
+  
+  // Try to fetch total users to calculate unassociated count
+  // This requires a /api/users endpoint to be available
+  const [totalUsers, setTotalUsers] = React.useState<number | null>(null);
+  const [unassociatedUsers, setUnassociatedUsers] = React.useState<number | null>(null);
+  
+  React.useEffect(() => {
+    // Try to fetch users count if API is available
+    const fetchUsers = async () => {
+      try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('hit_token') : null;
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const res = await fetch('/api/users', {
+          credentials: 'include',
+          headers,
+        });
+        
+        if (res.ok) {
+          const users = await res.json();
+          const total = Array.isArray(users) ? users.length : 0;
+          setTotalUsers(total);
+          setUnassociatedUsers(Math.max(0, total - associatedUsersCount));
+        }
+      } catch {
+        // Users API not available, ignore
+      }
+    };
+    
+    fetchUsers();
+  }, [associatedUsersCount]);
   
   // Group locations by type
   const locationsByType = types.map(type => ({
@@ -122,39 +167,56 @@ export function LocationDashboard({
           <div className="p-4">
             <div className="flex items-center justify-between">
               <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Location Types</p>
+                <p className="text-2xl font-bold mt-1">{totalLocationTypes}</p>
+              </div>
+              <div className="p-3 bg-indigo-100 dark:bg-indigo-900 rounded-lg">
+                <Tag className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        <Card>
+          <div className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {unassociatedUsers !== null ? 'Unassociated Users' : 'Associated Users'}
+                </p>
+                <p className="text-2xl font-bold mt-1">
+                  {unassociatedUsers !== null ? unassociatedUsers : associatedUsersCount}
+                </p>
+                {unassociatedUsers !== null && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {associatedUsersCount} associated
+                  </p>
+                )}
+              </div>
+              <div className={`p-3 rounded-lg ${
+                unassociatedUsers !== null && unassociatedUsers > 0
+                  ? 'bg-orange-100 dark:bg-orange-900'
+                  : 'bg-green-100 dark:bg-green-900'
+              }`}>
+                <Users className={`w-6 h-6 ${
+                  unassociatedUsers !== null && unassociatedUsers > 0
+                    ? 'text-orange-600 dark:text-orange-400'
+                    : 'text-green-600 dark:text-green-400'
+                }`} />
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        <Card>
+          <div className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Active Locations</p>
                 <p className="text-2xl font-bold mt-1">{activeLocations}</p>
               </div>
-              <div className="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
-                <Building2 className="w-6 h-6 text-green-600 dark:text-green-400" />
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        <Card>
-          <div className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">With Coordinates</p>
-                <p className="text-2xl font-bold mt-1">{locationsWithCoords}</p>
-              </div>
-              <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                <MapPin className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        <Card>
-          <div className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">HQ Locations</p>
-                <p className="text-2xl font-bold mt-1">{hqLocations.length}</p>
-              </div>
-              <div className="p-3 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
-                <Building2 className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+              <div className="p-3 bg-emerald-100 dark:bg-emerald-900 rounded-lg">
+                <Building2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
               </div>
             </div>
           </div>

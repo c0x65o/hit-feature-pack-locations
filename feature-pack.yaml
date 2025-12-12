@@ -25,6 +25,9 @@ routes:
   - path: /locations/types
     page: LocationTypes
     roles: []
+  - path: /locations/users
+    page: LocationUserAssociations
+    roles: []
 
 # Navigation contributions - auto-added to shell sidebar
 nav:
@@ -53,6 +56,12 @@ nav:
         path: /locations/types
         icon: Tag
         weight: 120
+        showWhen: authenticated
+      - id: locations-users
+        label: User Associations
+        path: /locations/users
+        icon: Users
+        weight: 130
         showWhen: authenticated
 
 # Schema contributions (Drizzle tables)

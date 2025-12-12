@@ -11,7 +11,6 @@ import {
 import { useUi } from '@hit/ui-kit';
 import { useLocation, useLocationMutations } from '../hooks/useLocations';
 import { LocationMap } from '../components/LocationMap';
-import { LocationUsers } from '../components/LocationUsers';
 
 interface LocationDetailProps {
   id?: string;
@@ -175,8 +174,6 @@ export function LocationDetail({
         </div>
       )}
 
-      {/* Associated Users */}
-      <LocationUsers locationId={location.id} />
     </Page>
   );
 }

@@ -9,4 +9,5 @@ export { LocationList, default as LocationListPage } from './List';
 export { LocationDetail, default as LocationDetailPage } from './Detail';
 export { LocationEdit, default as LocationEditPage } from './Edit';
 export { LocationTypes, default as LocationTypesPage } from './LocationTypes';
+export { LocationUserAssociations, default as LocationUserAssociationsPage } from './LocationUserAssociations';
 //# sourceMappingURL=index.js.map
