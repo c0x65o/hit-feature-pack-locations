@@ -212,16 +212,17 @@ export function LocationUsers({
             <label className="block text-sm font-medium mb-2">
               User Email
             </label>
-            <Input
+            <input
               type="email"
               value={userEmail}
-              onChange={setUserEmail}
-              placeholder="user@example.com"
-              onKeyDown={(e) => {
+              onChange={(e) => setUserEmail(e.target.value)}
+              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                 if (e.key === 'Enter') {
                   handleAddUser();
                 }
               }}
+              placeholder="user@example.com"
+              className="w-full h-10 px-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Enter the email address of the user to add

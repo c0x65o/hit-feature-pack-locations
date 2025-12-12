@@ -226,7 +226,6 @@ export function LocationList({
           exportable
           showColumnVisibility
           pageSize={25}
-          onRefresh={refresh}
         />
       </Card>
     </Page>

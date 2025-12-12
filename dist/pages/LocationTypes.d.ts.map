@@ -1,1 +1,1 @@
-{"version":3,"file":"LocationTypes.d.ts","sourceRoot":"","sources":["../../src/pages/LocationTypes.tsx"],"names":[],"mappings":"AAgBA,UAAU,kBAAkB;IAC1B,UAAU,CAAC,EAAE,CAAC,IAAI,EAAE,MAAM,KAAK,IAAI,CAAC;CACrC;AAYD,wBAAgB,aAAa,CAAC,EAC5B,UAAU,GACX,EAAE,kBAAkB,2CAyUpB;AAED,eAAe,aAAa,CAAC"}
+{"version":3,"file":"LocationTypes.d.ts","sourceRoot":"","sources":["../../src/pages/LocationTypes.tsx"],"names":[],"mappings":"AAgBA,UAAU,kBAAkB;IAC1B,UAAU,CAAC,EAAE,CAAC,IAAI,EAAE,MAAM,KAAK,IAAI,CAAC;CACrC;AAYD,wBAAgB,aAAa,CAAC,EAC5B,UAAU,GACX,EAAE,kBAAkB,2CAwUpB;AAED,eAAe,aAAa,CAAC"}

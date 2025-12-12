@@ -240,7 +240,6 @@ export function LocationTypes({
           loading={loading}
           exportable
           showColumnVisibility
-          onRefresh={refresh}
         />
       </Card>
 
@@ -285,11 +284,11 @@ export function LocationTypes({
           <div>
             <label className="block text-sm font-medium mb-2">Color</label>
             <div className="flex items-center gap-2">
-              <Input
+              <input
                 type="color"
                 value={formData.color}
-                onChange={(val) => setFormData({ ...formData, color: val })}
-                className="w-16 h-10"
+                onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                className="w-16 h-10 rounded border border-gray-300 dark:border-gray-700 cursor-pointer"
               />
               <Input
                 value={formData.color}
