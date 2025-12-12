@@ -6,6 +6,7 @@ version: 1.0.0
 description: Locations feature pack with hierarchical locations, user assignments, map visualization, and geocoding
 
 # Route definitions - mapped to React components
+# IMPORTANT: Static routes must come before dynamic [id] routes to prevent incorrect matching
 routes:
   - path: /locations
     page: Dashboard
@@ -16,17 +17,17 @@ routes:
   - path: /locations/new
     page: LocationEdit
     roles: []
-  - path: /locations/[id]
-    page: LocationDetail
-    roles: []
-  - path: /locations/[id]/edit
-    page: LocationEdit
-    roles: []
   - path: /locations/types
     page: LocationTypes
     roles: []
   - path: /locations/users
     page: LocationUserAssociations
+    roles: []
+  - path: /locations/[id]
+    page: LocationDetail
+    roles: []
+  - path: /locations/[id]/edit
+    page: LocationEdit
     roles: []
 
 # Navigation contributions - auto-added to shell sidebar
