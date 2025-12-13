@@ -17,24 +17,7 @@ let MapContainer: any;
 let TileLayer: any;
 let Marker: any;
 let Popup: any;
-
-if (typeof window !== 'undefined') {
-  try {
-    // Import Leaflet CSS
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    require('leaflet/dist/leaflet.css');
-    
-    // Dynamically import react-leaflet components
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const reactLeaflet = require('react-leaflet');
-    MapContainer = reactLeaflet.MapContainer;
-    TileLayer = reactLeaflet.TileLayer;
-    Marker = reactLeaflet.Marker;
-    Popup = reactLeaflet.Popup;
-  } catch (e) {
-    // Leaflet not available
-  }
-}
+let leafletLoaded = false;
 
 interface LocationMapProps {
   location?: Location | null;
@@ -44,50 +27,55 @@ interface LocationMapProps {
   onLocationClick?: (location: Location) => void;
 }
 
-// Create custom icon for location type
-function createIcon(locationType: { icon: string; color: string; name: string; code: string } | null) {
-  if (typeof window === 'undefined') return null;
+// Create custom icon for location type (synchronous version for use in render)
+function createIconSync(locationType: { icon: string; color: string; name: string; code: string } | null) {
+  if (typeof window === 'undefined') return undefined;
   
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const L = require('leaflet');
-  
-  // Fix default icon path issue
-  delete (L.Icon.Default.prototype as any)._getIconUrl;
-  L.Icon.Default.mergeOptions({
-    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-  });
-  
-  // Create custom div icon with colored markers
-  const color = locationType?.color || '#3b82f6';
-  const borderColor = locationType?.color || '#2563eb';
-  const label = locationType?.code === 'hq' ? 'HQ' : '•';
-  
-  return L.divIcon({
-    className: 'custom-marker',
-    html: `
-      <div style="
-        width: 24px;
-        height: 24px;
-        background-color: ${color};
-        border: 3px solid ${borderColor};
-        border-radius: 50%;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: bold;
-        font-size: 12px;
-      ">
-        ${label}
-      </div>
-    `,
-    iconSize: [24, 24],
-    iconAnchor: [12, 24],
-    popupAnchor: [0, -24],
-  });
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const L = require('leaflet');
+    
+    // Fix default icon path issue
+    delete (L.Icon.Default.prototype as any)._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+    });
+    
+    // Create custom div icon with colored markers
+    const color = locationType?.color || '#3b82f6';
+    const borderColor = locationType?.color || '#2563eb';
+    const label = locationType?.code === 'hq' ? 'HQ' : '•';
+    
+    return L.divIcon({
+      className: 'custom-marker',
+      html: `
+        <div style="
+          width: 24px;
+          height: 24px;
+          background-color: ${color};
+          border: 3px solid ${borderColor};
+          border-radius: 50%;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: bold;
+          font-size: 12px;
+        ">
+          ${label}
+        </div>
+      `,
+      iconSize: [24, 24],
+      iconAnchor: [12, 24],
+      popupAnchor: [0, -24],
+    });
+  } catch (e) {
+    console.warn('Failed to create icon:', e);
+    return undefined;
+  }
 }
 
 export function LocationMap({
@@ -100,6 +88,7 @@ export function LocationMap({
   const { Alert } = useUi();
   const [mapError, setMapError] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const [componentsReady, setComponentsReady] = useState(false);
   const { types } = useLocationTypes();
 
   // Determine which location(s) to show
@@ -112,9 +101,47 @@ export function LocationMap({
   useEffect(() => {
     setIsClient(true);
     
-    // Check if Leaflet is available
-    if (typeof window !== 'undefined' && !MapContainer) {
-      setMapError('Map library not available. Please install leaflet and react-leaflet.');
+    // If already loaded, mark as ready
+    if (leafletLoaded && MapContainer && TileLayer && Marker && Popup) {
+      setComponentsReady(true);
+      return;
+    }
+    
+    // Dynamically load Leaflet components
+    if (typeof window !== 'undefined' && !leafletLoaded) {
+      // Import Leaflet CSS
+      (import('leaflet/dist/leaflet.css') as Promise<unknown>).catch(() => {
+        // CSS import failed, but continue
+      });
+      
+      // Dynamically import react-leaflet components
+      import('react-leaflet')
+        .then((reactLeaflet) => {
+          if (reactLeaflet) {
+            const MapContainerComp = reactLeaflet.MapContainer;
+            const TileLayerComp = reactLeaflet.TileLayer;
+            const MarkerComp = reactLeaflet.Marker;
+            const PopupComp = reactLeaflet.Popup;
+            
+            if (MapContainerComp && typeof MapContainerComp === 'function') {
+              MapContainer = MapContainerComp;
+              TileLayer = TileLayerComp;
+              Marker = MarkerComp;
+              Popup = PopupComp;
+              leafletLoaded = true;
+              setMapError(null);
+              setComponentsReady(true);
+            } else {
+              setMapError('Map library not available. Please install leaflet and react-leaflet.');
+            }
+          } else {
+            setMapError('Map library not available. Please install leaflet and react-leaflet.');
+          }
+        })
+        .catch((e) => {
+          console.error('Failed to load Leaflet:', e);
+          setMapError('Map library not available. Please install leaflet and react-leaflet.');
+        });
     }
   }, []);
 
@@ -137,21 +164,29 @@ export function LocationMap({
     );
   }
 
-  if (mapError) {
+  if (!componentsReady || !MapContainer || !TileLayer || !Marker || !Popup) {
+    if (mapError) {
+      return (
+        <div style={{ height }} className="flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700">
+          <Alert variant="warning" title="Map unavailable">
+            {mapError}
+          </Alert>
+        </div>
+      );
+    }
     return (
       <div style={{ height }} className="flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700">
-        <Alert variant="warning" title="Map unavailable">
-          {mapError}
-        </Alert>
+        <div className="text-gray-500 dark:text-gray-400">Loading map...</div>
       </div>
     );
   }
 
-  if (!MapContainer || !TileLayer || !Marker || !Popup) {
+  // Ensure we have valid React components
+  if (typeof MapContainer !== 'function' || typeof TileLayer !== 'function' || typeof Marker !== 'function' || typeof Popup !== 'function') {
     return (
       <div style={{ height }} className="flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700">
         <Alert variant="warning" title="Map unavailable">
-          Map library not installed. Please install leaflet and react-leaflet packages.
+          Map components not properly loaded. Please refresh the page.
         </Alert>
       </div>
     );
@@ -166,9 +201,21 @@ export function LocationMap({
     ? locationsToShow.map((loc) => [parseFloat(loc.latitude!), parseFloat(loc.longitude!)] as [number, number])
     : undefined;
 
+  // Ensure we have valid React components
+  if (typeof MapContainer !== 'function' || typeof TileLayer !== 'function' || typeof Marker !== 'function' || typeof Popup !== 'function') {
+    return (
+      <div style={{ height }} className="flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700">
+        <Alert variant="warning" title="Map unavailable">
+          Map components not properly loaded. Please refresh the page.
+        </Alert>
+      </div>
+    );
+  }
+
   return (
     <div style={{ height }} className="rounded-lg border border-gray-300 dark:border-gray-700 overflow-hidden">
       <MapContainer
+        key={`map-${centerLat}-${centerLng}`}
         center={[centerLat, centerLng]}
         zoom={locationsToShow.length === 1 ? zoom : undefined}
         bounds={bounds}
@@ -182,15 +229,14 @@ export function LocationMap({
         {locationsToShow.map((loc) => {
           const lat = parseFloat(loc.latitude!);
           const lng = parseFloat(loc.longitude!);
-  const typeId = (loc as any).locationTypeId || (loc as any).location_type_id;
-  const locationType = types.find(t => t.id === typeId);
-  const icon = createIcon(locationType ? { icon: locationType.icon, color: locationType.color, name: locationType.name, code: locationType.code } : null);
+          const typeId = (loc as any).locationTypeId || (loc as any).location_type_id;
+          const locationType = types.find(t => t.id === typeId);
           
           return (
             <Marker
               key={loc.id}
               position={[lat, lng]}
-              icon={icon}
+              icon={createIconSync(locationType ? { icon: locationType.icon, color: locationType.color, name: locationType.name, code: locationType.code } : null)}
               eventHandlers={{
                 click: () => {
                   if (onLocationClick) {

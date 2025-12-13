@@ -19,6 +19,7 @@ export interface Location {
   longitude: string | null;
   parentId: string | null;
   locationTypeId: string | null;
+  isPrimary: boolean;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

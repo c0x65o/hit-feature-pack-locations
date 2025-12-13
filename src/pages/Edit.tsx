@@ -27,7 +27,6 @@ export function LocationEdit({
   const { geocode, loading: geocoding } = useGeocode();
 
   const [name, setName] = useState('');
-  const [code, setCode] = useState('');
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
@@ -44,7 +43,6 @@ export function LocationEdit({
   useEffect(() => {
     if (location) {
       setName(location.name);
-      setCode(location.code || '');
       setAddress(location.address || '');
       setCity(location.city || '');
       setState(location.state || '');
@@ -115,7 +113,6 @@ export function LocationEdit({
 
     const locationData: Partial<Location> = {
       name,
-      code: code || null,
       address: address || null,
       city: city || null,
       state: state || null,
@@ -182,9 +179,13 @@ export function LocationEdit({
   }
 
   const currentLocation: Partial<Location> = {
-    name,
+    id: id || 'preview',
+    name: name || 'Preview',
     latitude: latitude || null,
     longitude: longitude || null,
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 
   return (
@@ -217,12 +218,17 @@ export function LocationEdit({
               error={fieldErrors.name}
             />
 
-            <Input
-              label="Code"
-              value={code}
-              onChange={setCode}
-              placeholder="Optional location code..."
-            />
+            <div>
+              <label className="block text-sm font-medium mb-2">Location Type</label>
+              <Select
+                value={locationTypeId || ''}
+                onChange={(val) => setLocationTypeId(val || null)}
+                options={[
+                  { value: '', label: 'No Type' },
+                  ...types.map(type => ({ value: type.id, label: type.name })),
+                ]}
+              />
+            </div>
           </div>
         </Card>
 
@@ -299,7 +305,7 @@ export function LocationEdit({
         </Card>
 
         {/* Map Preview */}
-        {(latitude || longitude) && (
+        {latitude && longitude && !isNaN(parseFloat(latitude)) && !isNaN(parseFloat(longitude)) && (
           <Card>
             <h3 className="text-lg font-semibold mb-4">Map Preview</h3>
             <LocationMap location={currentLocation as Location} height="300px" />
@@ -316,18 +322,6 @@ export function LocationEdit({
               excludeId={id}
               allowClear
             />
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Location Type</label>
-              <Select
-                value={locationTypeId || ''}
-                onChange={(val) => setLocationTypeId(val || null)}
-                options={[
-                  { value: '', label: 'No Type' },
-                  ...types.map(type => ({ value: type.id, label: type.name })),
-                ]}
-              />
-            </div>
 
             <div className="space-y-2">
               <Checkbox
