@@ -29,6 +29,8 @@ export {
   LocationEditPage,
   LocationTypes,
   LocationTypesPage,
+  LocationUserAssociations,
+  LocationUserAssociationsPage,
 } from './pages/index';
 
 // Dashboard alias for route matching

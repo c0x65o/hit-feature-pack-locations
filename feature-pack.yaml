@@ -92,7 +92,7 @@ api:
       description: "Get, update, or delete a specific location type"
     - path: /api/locations/memberships
       methods: [GET, POST]
-      description: "Get location memberships (GET) or assign user to location (POST). GET supports ?locationId=xxx filter"
+      description: "Get location memberships (GET) or assign user to location (POST). GET supports ?locationId=xxx and ?all=true (admin) filters"
     - path: /api/locations/memberships/[id]
       methods: [DELETE]
       description: "Remove user from location"
@@ -102,10 +102,18 @@ api:
     - path: /api/locations/geocode
       methods: [POST]
       description: "Geocode address to latitude/longitude"
+    - path: /api/user-directory
+      methods: [GET]
+      description: "User directory endpoint (app-level). Returns { enabled: true, users: [...] } if auth module exists, or { enabled: false } if not. Supports ?search=xxx and ?limit=N. Enables user autocomplete and 'missing users' features."
+      optional: true
 
-# No module dependencies - runs on project's own database
+# No hard module dependencies - runs on project's own database
+# Optional: Uses auth module via /api/user-directory for enhanced features
 requires:
   modules: []
+  optional_modules:
+    - name: auth
+      description: "Enables user autocomplete and 'missing users' detection. Without auth, users must be entered manually by email."
 
 # Dependencies on other feature packs
 dependencies:

@@ -183,14 +183,23 @@ export function useLocationMutations() {
         error,
     };
 }
-export function useLocationMemberships(locationId) {
+export function useLocationMemberships(options = {}) {
+    // Support legacy signature: useLocationMemberships(locationId?: string)
+    const opts = typeof options === 'string' ? { locationId: options } : options;
+    const { locationId, all = false } = opts;
     const [memberships, setMemberships] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const refresh = useCallback(async () => {
         try {
             setLoading(true);
-            const endpoint = locationId ? `/memberships?locationId=${locationId}` : '/memberships';
+            const params = new URLSearchParams();
+            if (locationId)
+                params.set('locationId', locationId);
+            if (all)
+                params.set('all', 'true');
+            const queryString = params.toString();
+            const endpoint = queryString ? `/memberships?${queryString}` : '/memberships';
             const data = await fetchApi(endpoint);
             setMemberships(data);
             setError(null);
@@ -201,7 +210,7 @@ export function useLocationMemberships(locationId) {
         finally {
             setLoading(false);
         }
-    }, [locationId]);
+    }, [locationId, all]);
     useEffect(() => {
         refresh();
     }, [refresh]);

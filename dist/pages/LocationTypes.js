@@ -2,7 +2,7 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState } from 'react';
 import { Plus, Edit, Trash2, Building2, Package, ShoppingBag, Building, Cog, } from 'lucide-react';
-import { useUi } from '@hit/ui-kit';
+import { useUi, useAlertDialog } from '@hit/ui-kit';
 import { useLocationTypes, useLocationTypeMutations } from '../hooks/useLocationTypes';
 // Icon mapping for location types
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -14,7 +14,8 @@ const iconMap = {
     Cog,
 };
 export function LocationTypes({ onNavigate, }) {
-    const { Page, Card, Button, DataTable, Badge, Alert, Modal, Input } = useUi();
+    const { Page, Card, Button, DataTable, Badge, Alert, Modal, Input, AlertDialog } = useUi();
+    const alertDialog = useAlertDialog();
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [selectedType, setSelectedType] = useState(null);
@@ -59,7 +60,10 @@ export function LocationTypes({ onNavigate, }) {
     };
     const handleDelete = async (type) => {
         if (type.isSystem) {
-            alert('System types cannot be deleted');
+            await alertDialog.showAlert('System types cannot be deleted', {
+                variant: 'warning',
+                title: 'Cannot Delete'
+            });
             return;
         }
         setSelectedType(type);
@@ -147,7 +151,7 @@ export function LocationTypes({ onNavigate, }) {
                 }, title: "Delete Location Type", children: _jsxs("div", { className: "space-y-4", children: [_jsxs("p", { children: ["Are you sure you want to delete \"", selectedType?.name, "\"? This cannot be undone."] }), _jsx("p", { className: "text-sm text-gray-600 dark:text-gray-400", children: "Locations using this type will have their type set to null." }), _jsxs("div", { className: "flex items-center gap-2 justify-end", children: [_jsx(Button, { variant: "secondary", onClick: () => {
                                         setDeleteModalOpen(false);
                                         setSelectedType(null);
-                                    }, children: "Cancel" }), _jsx(Button, { variant: "danger", onClick: handleConfirmDelete, disabled: mutating, children: "Delete" })] })] }) })] }));
+                                    }, children: "Cancel" }), _jsx(Button, { variant: "danger", onClick: handleConfirmDelete, disabled: mutating, children: "Delete" })] })] }) }), _jsx(AlertDialog, { ...alertDialog.props })] }));
 }
 export default LocationTypes;
 //# sourceMappingURL=LocationTypes.js.map

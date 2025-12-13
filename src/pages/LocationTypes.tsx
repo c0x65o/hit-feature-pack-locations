@@ -11,7 +11,7 @@ import {
   Building,
   Cog,
 } from 'lucide-react';
-import { useUi } from '@hit/ui-kit';
+import { useUi, useAlertDialog } from '@hit/ui-kit';
 import { useLocationTypes, useLocationTypeMutations } from '../hooks/useLocationTypes';
 
 interface LocationTypesProps {
@@ -31,7 +31,8 @@ const iconMap: Record<string, React.ComponentType<any>> = {
 export function LocationTypes({
   onNavigate,
 }: LocationTypesProps) {
-  const { Page, Card, Button, DataTable, Badge, Alert, Modal, Input } = useUi();
+  const { Page, Card, Button, DataTable, Badge, Alert, Modal, Input, AlertDialog } = useUi();
+  const alertDialog = useAlertDialog();
   
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -81,7 +82,10 @@ export function LocationTypes({
 
   const handleDelete = async (type: any) => {
     if (type.isSystem) {
-      alert('System types cannot be deleted');
+      await alertDialog.showAlert('System types cannot be deleted', {
+        variant: 'warning',
+        title: 'Cannot Delete'
+      });
       return;
     }
     setSelectedType(type);
@@ -356,6 +360,7 @@ export function LocationTypes({
           </div>
         </div>
       </Modal>
+      <AlertDialog {...alertDialog.props} />
     </Page>
   );
 }

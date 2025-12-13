@@ -16,7 +16,7 @@
  * <Route path="/locations/:id/edit" element={<LocationEdit id={params.id} />} />
  * ```
  */
-export { LocationDashboard, LocationDashboardPage, LocationList, LocationListPage, LocationDetail, LocationDetailPage, LocationEdit, LocationEditPage, LocationTypes, LocationTypesPage, } from './pages/index';
+export { LocationDashboard, LocationDashboardPage, LocationList, LocationListPage, LocationDetail, LocationDetailPage, LocationEdit, LocationEditPage, LocationTypes, LocationTypesPage, LocationUserAssociations, LocationUserAssociationsPage, } from './pages/index';
 export { LocationDashboard as Dashboard } from './pages/Dashboard';
 export * from './components/index';
 export * from './hooks/index';

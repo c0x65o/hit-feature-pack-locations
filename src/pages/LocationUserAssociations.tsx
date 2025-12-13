@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   UserPlus,
   UserMinus,
   Users,
-  Check,
   MapPin,
+  AlertCircle,
+  Check,
 } from 'lucide-react';
 import { useUi } from '@hit/ui-kit';
 import {
@@ -15,6 +16,11 @@ import {
   useLocationMembershipMutations,
   type LocationUserMembership,
 } from '../hooks/useLocations';
+import {
+  useUserDirectory,
+  useUserSearch,
+  type DirectoryUser,
+} from '../hooks/useUserDirectory';
 
 interface LocationUserAssociationsProps {
   onNavigate?: (path: string) => void;
@@ -23,15 +29,28 @@ interface LocationUserAssociationsProps {
 export function LocationUserAssociations({
   onNavigate,
 }: LocationUserAssociationsProps) {
-  const { Page, Card, Button, Badge, Alert, Input, Modal, Spinner, DataTable } = useUi();
+  const { Page, Card, Button, Badge, Alert, Modal, Spinner, DataTable, Tabs } = useUi();
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [selectedLocationId, setSelectedLocationId] = useState<string>('');
   const [userEmail, setUserEmail] = useState('');
-  const [searchEmail, setSearchEmail] = useState('');
+  const [selectedUser, setSelectedUser] = useState<DirectoryUser | null>(null);
+  const [activeTab, setActiveTab] = useState<'all' | 'missing'>('all');
 
   const { data: locationsData } = useLocations({ page: 1, pageSize: 1000 });
-  const { memberships, loading, error, refresh } = useLocationMemberships();
+  // Fetch ALL memberships (admin mode)
+  const { memberships, loading, error, refresh } = useLocationMemberships({ all: true });
   const { assignLocation, removeMembership, loading: mutating } = useLocationMembershipMutations();
+
+  // User directory integration
+  const { 
+    users: directoryUsers, 
+    enabled: userDirectoryEnabled, 
+    loading: directoryLoading,
+    error: directoryError 
+  } = useUserDirectory({ limit: 1000 });
+
+  // User search for autocomplete
+  const { suggestions, loading: searchLoading } = useUserSearch(userEmail);
 
   const navigate = (path: string) => {
     if (onNavigate) {
@@ -46,14 +65,16 @@ export function LocationUserAssociations({
   };
 
   const handleAddUser = async () => {
-    if (!userEmail.trim() || !selectedLocationId) {
+    const emailToAdd = selectedUser?.email || userEmail.trim();
+    if (!emailToAdd || !selectedLocationId) {
       return;
     }
     try {
-      await assignLocation(selectedLocationId, userEmail.trim(), false);
+      await assignLocation(selectedLocationId, emailToAdd, false);
       setAddModalOpen(false);
       setUserEmail('');
       setSelectedLocationId('');
+      setSelectedUser(null);
       handleRefresh();
     } catch (e) {
       // Error handled by hook
@@ -72,13 +93,9 @@ export function LocationUserAssociations({
     }
   };
 
-  const handleSetDefault = async (membershipId: string, userEmail: string, locationId: string) => {
-    try {
-      await assignLocation(locationId, userEmail, true);
-      handleRefresh();
-    } catch (e) {
-      // Error handled by hook
-    }
+  const handleSelectUser = (user: DirectoryUser) => {
+    setSelectedUser(user);
+    setUserEmail(user.email);
   };
 
   // Get unique users from memberships
@@ -94,16 +111,192 @@ export function LocationUserAssociations({
     userLocationMap.set(membership.userKey, existing);
   });
 
-  // Filter users by search
-  const filteredUsers = uniqueUsers.filter(userKey =>
-    userKey.toLowerCase().includes(searchEmail.toLowerCase())
-  );
+  // Calculate missing users (users in directory but not assigned to any location)
+  const assignedUserKeys = useMemo(() => new Set(uniqueUsers), [uniqueUsers]);
+  const missingUsers = useMemo(() => {
+    if (!userDirectoryEnabled || !directoryUsers) return [];
+    return directoryUsers.filter(user => !assignedUserKeys.has(user.userKey));
+  }, [directoryUsers, assignedUserKeys, userDirectoryEnabled]);
 
   // Get location name by ID
   const getLocationName = (locationId: string) => {
     const location = locationsData?.items.find(loc => loc.id === locationId);
     return location?.name || 'Unknown Location';
   };
+
+  // Get display name for a userKey
+  const getUserDisplayInfo = (userKey: string) => {
+    const dirUser = directoryUsers?.find(u => u.userKey === userKey);
+    return {
+      displayName: dirUser?.displayName || null,
+      email: dirUser?.email || userKey,
+      profilePictureUrl: dirUser?.profilePictureUrl || null,
+    };
+  };
+
+  // Render user directory not available alert
+  const renderDirectoryAlert = () => {
+    if (userDirectoryEnabled === false) {
+      return (
+        <Alert variant="info" title="User Directory Not Available">
+          <div className="flex items-start gap-2">
+            <AlertCircle size={16} className="mt-0.5 flex-shrink-0" />
+            <div>
+              <p>Auth module is not configured. User autocomplete and "missing users" features are disabled.</p>
+              <p className="text-sm mt-1 opacity-75">You can still manually enter user emails to create associations.</p>
+            </div>
+          </div>
+        </Alert>
+      );
+    }
+    return null;
+  };
+
+  const allUsersContent = (
+    <DataTable
+      columns={[
+        {
+          key: 'user',
+          label: 'User',
+          sortable: true,
+          render: (_, row) => {
+            const userInfo = getUserDisplayInfo(row.userKey as string);
+            return (
+              <div className="flex items-center gap-2">
+                <Users size={16} className="text-gray-400" />
+                <div>
+                  <span className="font-medium">{userInfo.email}</span>
+                  {userInfo.displayName && (
+                    <span className="text-sm text-gray-500 ml-2">({userInfo.displayName})</span>
+                  )}
+                </div>
+              </div>
+            );
+          },
+        },
+        {
+          key: 'locations',
+          label: 'Locations',
+          render: (_, row) => {
+            const userMemberships = userLocationMap.get(row.userKey as string) || [];
+            return (
+              <div className="flex flex-wrap gap-2">
+                {userMemberships.map((membership) => (
+                  <div
+                    key={membership.id}
+                    className="flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-md"
+                  >
+                    <MapPin size={12} />
+                    <span className="text-sm">{getLocationName(membership.locationId)}</span>
+                  </div>
+                ))}
+                {userMemberships.length === 0 && (
+                  <span className="text-sm text-gray-500 dark:text-gray-400">No locations</span>
+                )}
+              </div>
+            );
+          },
+        },
+        {
+          key: 'actions',
+          label: '',
+          align: 'right' as const,
+          sortable: false,
+          hideable: false,
+          render: (_, row) => {
+            const userMemberships = userLocationMap.get(row.userKey as string) || [];
+            return (
+              <div className="flex items-center justify-end gap-2">
+                {userMemberships.map((membership) => (
+                  <Button
+                    key={membership.id}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleRemoveUser(membership.id, membership.userKey)}
+                    disabled={mutating}
+                  >
+                    <UserMinus size={16} className="text-red-500" />
+                  </Button>
+                ))}
+              </div>
+            );
+          },
+        },
+      ]}
+      data={uniqueUsers.map((userKey) => ({ userKey }))}
+      emptyMessage="No users found"
+      loading={loading}
+      exportable
+      showColumnVisibility
+    />
+  );
+
+  const missingUsersContent = (
+    <DataTable
+      columns={[
+        {
+          key: 'user',
+          label: 'User',
+          sortable: true,
+          render: (_, row) => {
+            const user = row as unknown as DirectoryUser;
+            return (
+              <div className="flex items-center gap-2">
+                <Users size={16} className="text-gray-400" />
+                <div>
+                  <span className="font-medium">{user.email}</span>
+                  {user.displayName && (
+                    <span className="text-sm text-gray-500 ml-2">({user.displayName})</span>
+                  )}
+                </div>
+              </div>
+            );
+          },
+        },
+        {
+          key: 'role',
+          label: 'Role',
+          render: (_, row) => {
+            const user = row as unknown as DirectoryUser;
+            return (
+              <Badge variant={user.role === 'admin' ? 'info' : 'default'}>
+                {user.role || 'user'}
+              </Badge>
+            );
+          },
+        },
+        {
+          key: 'actions',
+          label: '',
+          align: 'right' as const,
+          sortable: false,
+          hideable: false,
+          render: (_, row) => {
+            const user = row as unknown as DirectoryUser;
+            return (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  setSelectedUser(user);
+                  setUserEmail(user.email);
+                  setAddModalOpen(true);
+                }}
+              >
+                <UserPlus size={16} className="mr-1" />
+                Assign Location
+              </Button>
+            );
+          },
+        },
+      ]}
+      data={missingUsers as unknown as Record<string, unknown>[]}
+      emptyMessage="All users have location assignments!"
+      loading={directoryLoading}
+      exportable
+      showColumnVisibility
+    />
+  );
 
   return (
     <Page
@@ -122,110 +315,24 @@ export function LocationUserAssociations({
         </Alert>
       )}
 
-      <Card>
-        <div className="p-4 border-b border-gray-200 dark:border-gray-800">
-          <div className="mb-4">
-            <Input
-              value={searchEmail}
-              onChange={setSearchEmail}
-              placeholder="Search users by email..."
-            />
-          </div>
-        </div>
+      {renderDirectoryAlert()}
 
-        {loading ? (
+      <Card>
+        {loading || directoryLoading ? (
           <div className="flex items-center justify-center py-8">
             <Spinner />
           </div>
-        ) : (
-          <DataTable
-            columns={[
-              {
-                key: 'user',
-                label: 'User',
-                sortable: true,
-                render: (_, row) => (
-                  <div className="flex items-center gap-2">
-                    <Users size={16} className="text-gray-400" />
-                    <span className="font-medium">{row.userKey as string}</span>
-                  </div>
-                ),
-              },
-              {
-                key: 'locations',
-                label: 'Locations',
-                render: (_, row) => {
-                  const userMemberships = userLocationMap.get(row.userKey as string) || [];
-                  return (
-                    <div className="flex flex-wrap gap-2">
-                      {userMemberships.map((membership) => (
-                        <div
-                          key={membership.id}
-                          className="flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-md"
-                        >
-                          <MapPin size={12} />
-                          <span className="text-sm">{getLocationName(membership.locationId)}</span>
-                          {membership.isDefault && (
-                            <span className="ml-1">
-                              <Badge variant="success">
-                                <Check size={10} />
-                              </Badge>
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                      {userMemberships.length === 0 && (
-                        <span className="text-sm text-gray-500 dark:text-gray-400">No locations</span>
-                      )}
-                    </div>
-                  );
-                },
-              },
-              {
-                key: 'actions',
-                label: '',
-                align: 'right' as const,
-                sortable: false,
-                hideable: false,
-                render: (_, row) => {
-                  const userMemberships = userLocationMap.get(row.userKey as string) || [];
-                  return (
-                    <div className="flex items-center justify-end gap-2">
-                      {userMemberships.map((membership) => (
-                        <div key={membership.id} className="flex items-center gap-1">
-                          {!membership.isDefault && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleSetDefault(membership.id, membership.userKey, membership.locationId)}
-                              disabled={mutating}
-                            >
-                              <Check size={16} />
-                            </Button>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRemoveUser(membership.id, membership.userKey)}
-                            disabled={mutating}
-                          >
-                            <UserMinus size={16} className="text-red-500" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                },
-              },
+        ) : userDirectoryEnabled ? (
+          <Tabs
+            activeTab={activeTab}
+            onChange={(tabId) => setActiveTab(tabId as 'all' | 'missing')}
+            tabs={[
+              { id: 'all', label: `All Users (${uniqueUsers.length})`, content: allUsersContent },
+              { id: 'missing', label: `Missing Associations (${missingUsers.length})`, content: missingUsersContent },
             ]}
-            data={filteredUsers.map(userKey => ({
-              userKey,
-            }))}
-            emptyMessage="No users found"
-            loading={loading}
-            exportable
-            showColumnVisibility
           />
+        ) : (
+          allUsersContent
         )}
       </Card>
 
@@ -236,6 +343,7 @@ export function LocationUserAssociations({
           setAddModalOpen(false);
           setUserEmail('');
           setSelectedLocationId('');
+          setSelectedUser(null);
         }}
         title="Add User to Location"
       >
@@ -244,18 +352,65 @@ export function LocationUserAssociations({
             <label className="block text-sm font-medium mb-2">
               User Email
             </label>
-            <input
-              type="email"
-              value={userEmail}
-              onChange={(e) => setUserEmail(e.target.value)}
-              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                if (e.key === 'Enter') {
-                  handleAddUser();
-                }
-              }}
-              placeholder="user@example.com"
-              className="w-full h-10 px-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            />
+            <div className="relative">
+              <input
+                type="email"
+                value={userEmail}
+                onChange={(e) => {
+                  setUserEmail(e.target.value);
+                  setSelectedUser(null);
+                }}
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                  if (e.key === 'Enter') {
+                    handleAddUser();
+                  }
+                }}
+                placeholder="Search or enter email..."
+                className="w-full h-10 px-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              {searchLoading && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <Spinner />
+                </div>
+              )}
+            </div>
+            
+            {/* Autocomplete suggestions */}
+            {userDirectoryEnabled && suggestions.length > 0 && !selectedUser && (
+              <div className="mt-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 shadow-lg max-h-48 overflow-y-auto">
+                {suggestions.map(user => (
+                  <button
+                    key={user.userKey}
+                    type="button"
+                    onClick={() => handleSelectUser(user)}
+                    className="w-full px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                  >
+                    <Users size={14} className="text-gray-400" />
+                    <div>
+                      <div className="font-medium text-gray-900 dark:text-gray-100">{user.email}</div>
+                      {user.displayName && (
+                        <div className="text-sm text-gray-500">{user.displayName}</div>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {selectedUser && (
+              <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md flex items-center gap-2">
+                <Check size={14} className="text-blue-500" />
+                <span className="text-sm text-blue-700 dark:text-blue-300">
+                  Selected: {selectedUser.displayName || selectedUser.email}
+                </span>
+              </div>
+            )}
+
+            {!userDirectoryEnabled && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Enter the email address of the user to add
+              </p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium mb-2">
@@ -281,6 +436,7 @@ export function LocationUserAssociations({
                 setAddModalOpen(false);
                 setUserEmail('');
                 setSelectedLocationId('');
+                setSelectedUser(null);
               }}
             >
               Cancel
@@ -300,4 +456,3 @@ export function LocationUserAssociations({
 }
 
 export default LocationUserAssociations;
-

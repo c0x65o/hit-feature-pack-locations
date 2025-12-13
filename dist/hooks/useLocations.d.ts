@@ -74,7 +74,12 @@ export declare function useLocationMutations(): {
     loading: boolean;
     error: Error | null;
 };
-export declare function useLocationMemberships(locationId?: string): {
+interface UseMembershipOptions {
+    locationId?: string;
+    /** If true, fetches all memberships (admin only). Default: false */
+    all?: boolean;
+}
+export declare function useLocationMemberships(options?: UseMembershipOptions | string): {
     memberships: LocationUserMembership[] | null;
     loading: boolean;
     error: Error | null;

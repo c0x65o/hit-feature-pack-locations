@@ -17,7 +17,7 @@
  * ```
  */
 // Pages - exported individually for tree-shaking
-export { LocationDashboard, LocationDashboardPage, LocationList, LocationListPage, LocationDetail, LocationDetailPage, LocationEdit, LocationEditPage, LocationTypes, LocationTypesPage, } from './pages/index';
+export { LocationDashboard, LocationDashboardPage, LocationList, LocationListPage, LocationDetail, LocationDetailPage, LocationEdit, LocationEditPage, LocationTypes, LocationTypesPage, LocationUserAssociations, LocationUserAssociationsPage, } from './pages/index';
 // Dashboard alias for route matching
 export { LocationDashboard as Dashboard } from './pages/Dashboard';
 // Components - exported individually for tree-shaking

@@ -3,6 +3,7 @@
  * 
  * Manages user associations with a location.
  * Allows adding and removing users from a location.
+ * Includes user autocomplete when auth module is available.
  */
 
 'use client';
@@ -14,6 +15,7 @@ import {
   Users,
   X,
   Check,
+  AlertCircle,
 } from 'lucide-react';
 import { useUi } from '@hit/ui-kit';
 import {
@@ -21,15 +23,15 @@ import {
   useLocationMembershipMutations,
   type LocationUserMembership,
 } from '../hooks/useLocations';
+import {
+  useUserSearch,
+  useUserDirectoryStatus,
+  type DirectoryUser,
+} from '../hooks/useUserDirectory';
 
 interface LocationUsersProps {
   locationId: string;
   onRefresh?: () => void;
-}
-
-interface User {
-  email: string;
-  name?: string;
 }
 
 export function LocationUsers({
@@ -40,9 +42,15 @@ export function LocationUsers({
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [userEmail, setUserEmail] = useState('');
   const [searchEmail, setSearchEmail] = useState('');
+  const [selectedUser, setSelectedUser] = useState<DirectoryUser | null>(null);
 
-  const { memberships, loading, error, refresh } = useLocationMemberships(locationId);
+  // Fetch memberships for this location - use admin mode to get all users assigned here
+  const { memberships, loading, error, refresh } = useLocationMemberships({ locationId, all: true });
   const { assignLocation, removeMembership, loading: mutating } = useLocationMembershipMutations();
+
+  // User directory integration
+  const { enabled: userDirectoryEnabled, loading: directoryStatusLoading } = useUserDirectoryStatus();
+  const { suggestions, loading: searchLoading } = useUserSearch(userEmail);
 
   // Filter memberships for this location
   const locationMemberships = memberships?.filter(m => m.locationId === locationId) || [];
@@ -55,13 +63,15 @@ export function LocationUsers({
   };
 
   const handleAddUser = async () => {
-    if (!userEmail.trim()) {
+    const emailToAdd = selectedUser?.email || userEmail.trim();
+    if (!emailToAdd) {
       return;
     }
     try {
-      await assignLocation(locationId, userEmail.trim(), false);
+      await assignLocation(locationId, emailToAdd, false);
       setAddModalOpen(false);
       setUserEmail('');
+      setSelectedUser(null);
       handleRefresh();
     } catch (e) {
       // Error handled by hook
@@ -88,6 +98,11 @@ export function LocationUsers({
     } catch (e) {
       // Error handled by hook
     }
+  };
+
+  const handleSelectUser = (user: DirectoryUser) => {
+    setSelectedUser(user);
+    setUserEmail(user.email);
   };
 
   // Filter memberships by search
@@ -204,6 +219,7 @@ export function LocationUsers({
         onClose={() => {
           setAddModalOpen(false);
           setUserEmail('');
+          setSelectedUser(null);
         }}
         title="Add User to Location"
       >
@@ -212,21 +228,65 @@ export function LocationUsers({
             <label className="block text-sm font-medium mb-2">
               User Email
             </label>
-            <input
-              type="email"
-              value={userEmail}
-              onChange={(e) => setUserEmail(e.target.value)}
-              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                if (e.key === 'Enter') {
-                  handleAddUser();
-                }
-              }}
-              placeholder="user@example.com"
-              className="w-full h-10 px-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            />
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Enter the email address of the user to add
-            </p>
+            <div className="relative">
+              <input
+                type="email"
+                value={userEmail}
+                onChange={(e) => {
+                  setUserEmail(e.target.value);
+                  setSelectedUser(null);
+                }}
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                  if (e.key === 'Enter') {
+                    handleAddUser();
+                  }
+                }}
+                placeholder={userDirectoryEnabled ? "Search or enter email..." : "user@example.com"}
+                className="w-full h-10 px-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              {searchLoading && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <Spinner />
+                </div>
+              )}
+            </div>
+
+            {/* Autocomplete suggestions */}
+            {userDirectoryEnabled && suggestions.length > 0 && !selectedUser && (
+              <div className="mt-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 shadow-lg max-h-48 overflow-y-auto">
+                {suggestions.map(user => (
+                  <button
+                    key={user.userKey}
+                    type="button"
+                    onClick={() => handleSelectUser(user)}
+                    className="w-full px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                  >
+                    <Users size={14} className="text-gray-400" />
+                    <div>
+                      <div className="font-medium text-gray-900 dark:text-gray-100">{user.email}</div>
+                      {user.displayName && (
+                        <div className="text-sm text-gray-500">{user.displayName}</div>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {selectedUser && (
+              <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md flex items-center gap-2">
+                <Check size={14} className="text-blue-500" />
+                <span className="text-sm text-blue-700 dark:text-blue-300">
+                  Selected: {selectedUser.displayName || selectedUser.email}
+                </span>
+              </div>
+            )}
+
+            {!userDirectoryEnabled && !directoryStatusLoading && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Enter the email address of the user to add
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-2 justify-end">
             <Button
@@ -234,6 +294,7 @@ export function LocationUsers({
               onClick={() => {
                 setAddModalOpen(false);
                 setUserEmail('');
+                setSelectedUser(null);
               }}
             >
               Cancel
@@ -253,4 +314,3 @@ export function LocationUsers({
 }
 
 export default LocationUsers;
-

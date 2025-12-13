@@ -245,7 +245,17 @@ export function useLocationMutations() {
   };
 }
 
-export function useLocationMemberships(locationId?: string) {
+interface UseMembershipOptions {
+  locationId?: string;
+  /** If true, fetches all memberships (admin only). Default: false */
+  all?: boolean;
+}
+
+export function useLocationMemberships(options: UseMembershipOptions | string = {}) {
+  // Support legacy signature: useLocationMemberships(locationId?: string)
+  const opts = typeof options === 'string' ? { locationId: options } : options;
+  const { locationId, all = false } = opts;
+
   const [memberships, setMemberships] = useState<LocationUserMembership[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -253,7 +263,12 @@ export function useLocationMemberships(locationId?: string) {
   const refresh = useCallback(async () => {
     try {
       setLoading(true);
-      const endpoint = locationId ? `/memberships?locationId=${locationId}` : '/memberships';
+      const params = new URLSearchParams();
+      if (locationId) params.set('locationId', locationId);
+      if (all) params.set('all', 'true');
+      
+      const queryString = params.toString();
+      const endpoint = queryString ? `/memberships?${queryString}` : '/memberships';
       const data = await fetchApi<LocationUserMembership[]>(endpoint);
       setMemberships(data);
       setError(null);
@@ -262,7 +277,7 @@ export function useLocationMemberships(locationId?: string) {
     } finally {
       setLoading(false);
     }
-  }, [locationId]);
+  }, [locationId, all]);
 
   useEffect(() => {
     refresh();

@@ -3,6 +3,7 @@
  *
  * Manages user associations with a location.
  * Allows adding and removing users from a location.
+ * Includes user autocomplete when auth module is available.
  */
 interface LocationUsersProps {
     locationId: string;

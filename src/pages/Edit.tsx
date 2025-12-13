@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Save, MapPin } from 'lucide-react';
-import { useUi } from '@hit/ui-kit';
+import { useUi, useAlertDialog } from '@hit/ui-kit';
 import { useLocation, useLocationMutations, type Location } from '../hooks/useLocations';
 import { useLocationTypes } from '../hooks/useLocationTypes';
 import { useGeocode } from '../hooks/useGeocoding';
@@ -18,7 +18,8 @@ export function LocationEdit({
   id,
   onNavigate,
 }: LocationEditProps) {
-  const { Page, Card, Button, Input, TextArea, Alert, Spinner, Checkbox, Select } = useUi();
+  const { Page, Card, Button, Input, TextArea, Alert, Spinner, Checkbox, Select, AlertDialog } = useUi();
+  const alertDialog = useAlertDialog();
   
   const isNew = !id || id === 'new';
   const { location, loading: loadingLocation, error: loadError } = useLocation(isNew ? undefined : id);
@@ -93,7 +94,10 @@ export function LocationEdit({
     ].filter(Boolean).join(', ');
 
     if (!fullAddress.trim()) {
-      alert('Please enter an address to geocode');
+      await alertDialog.showAlert('Please enter an address to geocode', { 
+        variant: 'warning',
+        title: 'Address Required'
+      });
       return;
     }
 
@@ -102,7 +106,10 @@ export function LocationEdit({
       setLatitude(result.latitude.toString());
       setLongitude(result.longitude.toString());
     } catch (error) {
-      alert(`Failed to geocode address: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      await alertDialog.showAlert(
+        `Failed to geocode address: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        { variant: 'error', title: 'Geocoding Failed' }
+      );
     }
   };
 
@@ -343,6 +350,7 @@ export function LocationEdit({
           </Button>
         </div>
       </form>
+      <AlertDialog {...alertDialog.props} />
     </Page>
   );
 }
