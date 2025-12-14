@@ -10,7 +10,7 @@ import {
   Calendar,
   Clock,
 } from 'lucide-react';
-import { useUi } from '@hit/ui-kit';
+import { useUi, type BreadcrumbItem } from '@hit/ui-kit';
 import { useLocation, useLocationMutations, type Location } from '../hooks/useLocations';
 import { useLocationTypes, type LocationType } from '../hooks/useLocationTypes';
 import { LocationMap } from '../components/LocationMap';
@@ -140,15 +140,18 @@ export function LocationDetail({
     return null;
   }
 
+  const breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Locations', href: '/locations', icon: <MapPin size={14} /> },
+    { label: location.name },
+  ];
+
   return (
     <Page
       title={location.name}
+      breadcrumbs={breadcrumbs}
+      onNavigate={navigate}
       actions={
         <div className="flex items-center gap-3">
-          <Button variant="secondary" onClick={() => navigate('/locations')}>
-            <ArrowLeft size={16} className="mr-2" />
-            Back
-          </Button>
           <Button variant="primary" onClick={() => navigate(`/locations/${location.id}/edit`)}>
             <Edit size={16} className="mr-2" />
             Edit

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Save, MapPin } from 'lucide-react';
-import { useUi, useAlertDialog } from '@hit/ui-kit';
+import { useUi, useAlertDialog, type BreadcrumbItem } from '@hit/ui-kit';
 import { useLocation, useLocationMutations, type Location } from '../hooks/useLocations';
 import { useLocationTypes } from '../hooks/useLocationTypes';
 import { useGeocode } from '../hooks/useGeocoding';
@@ -195,9 +195,17 @@ export function LocationEdit({
     updatedAt: new Date().toISOString(),
   };
 
+  const breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Locations', href: '/locations', icon: <MapPin size={14} /> },
+    ...(!isNew && location ? [{ label: location.name, href: `/locations/${id}` }] : []),
+    { label: isNew ? 'New' : 'Edit' },
+  ];
+
   return (
     <Page
       title={isNew ? 'New Location' : 'Edit Location'}
+      breadcrumbs={breadcrumbs}
+      onNavigate={navigate}
       actions={
         <Button variant="secondary" onClick={handleCancel}>
           <ArrowLeft size={16} className="mr-2" />

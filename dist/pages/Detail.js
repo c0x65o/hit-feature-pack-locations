@@ -95,7 +95,11 @@ export function LocationDetail({ id, onNavigate, }) {
     if (!location) {
         return null;
     }
-    return (_jsxs(Page, { title: location.name, actions: _jsxs("div", { className: "flex items-center gap-3", children: [_jsxs(Button, { variant: "secondary", onClick: () => navigate('/locations'), children: [_jsx(ArrowLeft, { size: 16, className: "mr-2" }), "Back"] }), _jsxs(Button, { variant: "primary", onClick: () => navigate(`/locations/${location.id}/edit`), children: [_jsx(Edit, { size: 16, className: "mr-2" }), "Edit"] }), _jsxs(Button, { variant: "danger", onClick: handleDelete, disabled: mutating, children: [_jsx(Trash2, { size: 16, className: "mr-2" }), "Delete"] })] }), children: [_jsxs("div", { className: "flex items-center gap-2 mb-4", children: [location.isActive ? (_jsx(Badge, { variant: "success", children: "Active" })) : (_jsx(Badge, { variant: "error", children: "Inactive" })), (location.isPrimary || location.is_primary) && (_jsx(Badge, { variant: "info", children: "Primary Location" })), locationType && (_jsxs("span", { style: {
+    const breadcrumbs = [
+        { label: 'Locations', href: '/locations', icon: _jsx(MapPin, { size: 14 }) },
+        { label: location.name },
+    ];
+    return (_jsxs(Page, { title: location.name, breadcrumbs: breadcrumbs, onNavigate: navigate, actions: _jsxs("div", { className: "flex items-center gap-3", children: [_jsxs(Button, { variant: "primary", onClick: () => navigate(`/locations/${location.id}/edit`), children: [_jsx(Edit, { size: 16, className: "mr-2" }), "Edit"] }), _jsxs(Button, { variant: "danger", onClick: handleDelete, disabled: mutating, children: [_jsx(Trash2, { size: 16, className: "mr-2" }), "Delete"] })] }), children: [_jsxs("div", { className: "flex items-center gap-2 mb-4", children: [location.isActive ? (_jsx(Badge, { variant: "success", children: "Active" })) : (_jsx(Badge, { variant: "error", children: "Inactive" })), (location.isPrimary || location.is_primary) && (_jsx(Badge, { variant: "info", children: "Primary Location" })), locationType && (_jsxs("span", { style: {
                             display: 'inline-flex',
                             alignItems: 'center',
                             padding: '4px 8px',
