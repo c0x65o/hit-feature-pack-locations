@@ -71,36 +71,48 @@ schema:
   source: src/schema/locations.ts
   exports: [locationTypes, locations, locationUserMemberships, LocationType, InsertLocationType, UpdateLocationType, Location, InsertLocation, UpdateLocation, LocationUserMembership, InsertLocationUserMembership, UpdateLocationUserMembership, DEFAULT_LOCATION_TYPES]
 
-# API routes the feature pack expects
-# Projects create these routes using the schema
+# API routes - handler-based pattern (recommended)
 api:
   routes:
     - path: /api/locations
       methods: [GET, POST]
+      handler: "@hit/feature-pack-locations/server/api/locations"
       description: "List locations (GET) or create location (POST)"
     - path: /api/locations/[id]
       methods: [GET, PUT, DELETE]
+      handler: "@hit/feature-pack-locations/server/api/locations-id"
       description: "Get, update, or delete a specific location"
     - path: /api/locations/tree
       methods: [GET]
+      handler: "@hit/feature-pack-locations/server/api/tree"
       description: "Get locations in hierarchical tree structure"
+    - path: /api/locations/[id]/set-primary
+      methods: [POST]
+      handler: "@hit/feature-pack-locations/server/api/set-primary"
+      description: "Set location as the primary/HQ location"
     - path: /api/locations/types
       methods: [GET, POST]
+      handler: "@hit/feature-pack-locations/server/api/types"
       description: "List location types (GET) or create type (POST)"
     - path: /api/locations/types/[id]
       methods: [GET, PUT, DELETE]
+      handler: "@hit/feature-pack-locations/server/api/types-id"
       description: "Get, update, or delete a specific location type"
     - path: /api/locations/memberships
       methods: [GET, POST]
+      handler: "@hit/feature-pack-locations/server/api/memberships"
       description: "Get location memberships (GET) or assign user to location (POST). GET supports ?locationId=xxx and ?all=true (admin) filters"
     - path: /api/locations/memberships/[id]
       methods: [DELETE]
+      handler: "@hit/feature-pack-locations/server/api/memberships-id"
       description: "Remove user from location"
     - path: /api/locations/[id]/memberships
       methods: [GET]
+      handler: "@hit/feature-pack-locations/server/api/location-memberships"
       description: "Get all users assigned to a specific location"
     - path: /api/locations/geocode
       methods: [POST]
+      handler: "@hit/feature-pack-locations/server/api/geocode"
       description: "Geocode address to latitude/longitude"
     - path: /api/user-directory
       methods: [GET]

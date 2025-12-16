@@ -1,6 +1,6 @@
 {
   "name": "@hit/feature-pack-locations",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "Locations feature pack with hierarchical locations, user assignments, map visualization, and geocoding. Uses @hit/ui-kit for shell-agnostic UI.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -23,6 +23,12 @@
       "import": "./dist/schema/locations.js",
       "require": "./dist/schema/locations.js",
       "default": "./dist/schema/locations.js"
+    },
+    "./server/api/*": {
+      "types": "./dist/server/api/*.d.ts",
+      "import": "./dist/server/api/*.js",
+      "require": "./dist/server/api/*.js",
+      "default": "./dist/server/api/*.js"
     }
   },
   "files": [
@@ -53,6 +59,7 @@
     "drizzle-orm": "^0.30.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.460.0",
+    "next": "^14.2.5",
     "react-leaflet": "^4.2.0",
     "typescript": "^5.0.0"
   },
