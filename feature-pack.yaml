@@ -2,7 +2,6 @@
 # Locations management with hierarchical structure, user assignments, maps, and geocoding
 
 name: locations
-version: 1.0.0
 description: Locations feature pack with hierarchical locations, user assignments, map visualization, and geocoding
 
 # Route definitions - mapped to React components
