@@ -200,7 +200,9 @@ export function useLocationMemberships(options = {}) {
                 params.set('all', 'true');
             const queryString = params.toString();
             const endpoint = queryString ? `/memberships?${queryString}` : '/memberships';
-            const data = await fetchApi(endpoint);
+            const response = await fetchApi(endpoint);
+            // API returns { items: [...] }, extract the items array
+            const data = Array.isArray(response) ? response : (response.items || []);
             setMemberships(data);
             setError(null);
         }

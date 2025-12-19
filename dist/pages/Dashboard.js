@@ -39,7 +39,8 @@ export function LocationDashboard({ onNavigate, }) {
     const totalLocationTypes = types.length;
     // Calculate unassociated users
     // Get unique users from memberships
-    const associatedUsers = new Set(memberships?.map(m => m.userKey) || []);
+    const membershipsArray = Array.isArray(memberships) ? memberships : [];
+    const associatedUsers = new Set(membershipsArray.map(m => m.userKey));
     const associatedUsersCount = associatedUsers.size;
     // Try to fetch total users to calculate unassociated count
     // This requires a /api/users endpoint to be available
