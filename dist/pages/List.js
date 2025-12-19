@@ -113,7 +113,7 @@ export function LocationList({ onNavigate, }) {
                         longitude: loc.longitude,
                         locationTypeId: loc.locationTypeId || loc.location_type_id || null,
                         isActive: loc.isActive,
-                    })) || [], emptyMessage: "No locations found", loading: loading, exportable: true, showColumnVisibility: true, pageSize: 25 }) })] }));
+                    })) || [], emptyMessage: "No locations found", loading: loading, exportable: true, showColumnVisibility: true, pageSize: 25, onRefresh: refresh, refreshing: loading, tableId: "locations" }) })] }));
 }
 export default LocationList;
 //# sourceMappingURL=List.js.map

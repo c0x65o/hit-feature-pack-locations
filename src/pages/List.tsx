@@ -226,6 +226,9 @@ export function LocationList({
           exportable
           showColumnVisibility
           pageSize={25}
+          onRefresh={refresh}
+          refreshing={loading}
+          tableId="locations"
         />
       </Card>
     </Page>
