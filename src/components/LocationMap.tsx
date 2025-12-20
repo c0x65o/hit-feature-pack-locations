@@ -90,6 +90,7 @@ export function LocationMap({
   const [isClient, setIsClient] = useState(false);
   const [componentsReady, setComponentsReady] = useState(false);
   const { types } = useLocationTypes();
+  const typesArray = Array.isArray(types) ? types : [];
 
   // Determine which location(s) to show
   const locationsToShow = useMemo(() => {
@@ -230,7 +231,7 @@ export function LocationMap({
           const lat = parseFloat(loc.latitude!);
           const lng = parseFloat(loc.longitude!);
           const typeId = (loc as any).locationTypeId || (loc as any).location_type_id;
-          const locationType = types.find(t => t.id === typeId);
+          const locationType = typesArray.find(t => t.id === typeId);
           
           return (
             <Marker

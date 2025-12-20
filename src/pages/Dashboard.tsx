@@ -53,13 +53,16 @@ export function LocationDashboard({
     }
   };
 
+  // Ensure types is always an array
+  const typesArray = Array.isArray(types) ? types : [];
+
   // Calculate stats
   const totalLocations = data?.items.length || 0;
   const activeLocations = data?.items.filter(loc => loc.isActive).length || 0;
   const locationsWithCoords = data?.items.filter(
     (loc) => loc.latitude && loc.longitude
   ).length || 0;
-  const totalLocationTypes = types.length;
+  const totalLocationTypes = typesArray.length;
   
   // Calculate unassociated users
   // Get unique users from memberships
@@ -104,7 +107,7 @@ export function LocationDashboard({
   }, [associatedUsersCount]);
   
   // Group locations by type
-  const locationsByType = types.map(type => ({
+  const locationsByType = typesArray.map(type => ({
     type,
     count: data?.items.filter(loc => {
       const typeId = (loc as any).locationTypeId || (loc as any).location_type_id;
@@ -113,7 +116,7 @@ export function LocationDashboard({
   }));
 
   // Get HQ location (type code "hq")
-  const hqType = types.find(t => t.code === 'hq');
+  const hqType = typesArray.find(t => t.code === 'hq');
   const hqLocations = hqType ? data?.items.filter(loc => {
     const typeId = (loc as any).locationTypeId || (loc as any).location_type_id;
     return typeId === hqType.id;

@@ -18,6 +18,7 @@ export function LocationList({ onNavigate, }) {
         search: search || undefined,
     });
     const { types } = useLocationTypes();
+    const typesArray = Array.isArray(types) ? types : [];
     const { deleteLocation, loading: mutating } = useLocationMutations();
     const navigate = (path) => {
         if (onNavigate) {
@@ -58,7 +59,7 @@ export function LocationList({ onNavigate, }) {
                             render: (_, row) => {
                                 const hasCoords = Boolean(row.latitude && row.longitude);
                                 const typeId = row.locationTypeId || row.location_type_id;
-                                const locationType = types.find(t => t.id === typeId);
+                                const locationType = typesArray.find(t => t.id === typeId);
                                 return (_jsx("div", { className: "flex items-center gap-2", children: _jsxs("button", { onClick: () => navigate(`/locations/${row.id}`), className: "font-medium hover:text-blue-500 transition-colors text-left flex items-center gap-2", children: [locationType && (_jsx("span", { title: locationType.name, className: "inline-flex", children: _jsx(MapPin, { size: 14, style: { color: locationType.color } }) })), hasCoords && !locationType && (_jsx("span", { title: "Has coordinates", className: "inline-flex", children: _jsx(MapPin, { size: 14, className: "text-blue-500" }) })), row.name] }) }));
                             },
                         },
@@ -83,7 +84,7 @@ export function LocationList({ onNavigate, }) {
                             label: 'Type',
                             render: (_, row) => {
                                 const typeId = row.locationTypeId || row.location_type_id;
-                                const locationType = types.find(t => t.id === typeId);
+                                const locationType = typesArray.find(t => t.id === typeId);
                                 return locationType ? (_jsx(Badge, { variant: "default", children: _jsx("span", { style: { color: locationType.color }, children: locationType.name }) })) : (_jsx(Badge, { variant: "default", children: "No Type" }));
                             },
                         },

@@ -46,6 +46,7 @@ export function LocationTypes({
   });
 
   const { types, loading, error, refresh } = useLocationTypes();
+  const typesArray = Array.isArray(types) ? types : [];
   const { createType, updateType, deleteType, loading: mutating } = useLocationTypeMutations();
 
   const navigate = (path: string) => {
@@ -231,7 +232,7 @@ export function LocationTypes({
               ),
             },
           ]}
-          data={types.map((type) => ({
+          data={typesArray.map((type) => ({
             id: type.id,
             name: type.name,
             code: type.code,

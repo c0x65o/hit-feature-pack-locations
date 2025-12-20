@@ -35,6 +35,7 @@ export function LocationList({
   });
   
   const { types } = useLocationTypes();
+  const typesArray = Array.isArray(types) ? types : [];
   const { deleteLocation, loading: mutating } = useLocationMutations();
 
   const navigate = (path: string) => {
@@ -116,7 +117,7 @@ export function LocationList({
               render: (_, row) => {
                 const hasCoords = Boolean(row.latitude && row.longitude);
                 const typeId = (row as any).locationTypeId || (row as any).location_type_id;
-                const locationType = types.find(t => t.id === typeId);
+                const locationType = typesArray.find(t => t.id === typeId);
                 return (
                   <div className="flex items-center gap-2">
                     <button
@@ -161,7 +162,7 @@ export function LocationList({
               label: 'Type',
               render: (_, row) => {
                 const typeId = (row as any).locationTypeId || (row as any).location_type_id;
-                const locationType = types.find(t => t.id === typeId);
+                const locationType = typesArray.find(t => t.id === typeId);
                 return locationType ? (
                   <Badge variant="default">
                     <span style={{ color: locationType.color }}>{locationType.name}</span>

@@ -27,6 +27,7 @@ export function LocationTypes({ onNavigate, }) {
         description: '',
     });
     const { types, loading, error, refresh } = useLocationTypes();
+    const typesArray = Array.isArray(types) ? types : [];
     const { createType, updateType, deleteType, loading: mutating } = useLocationTypeMutations();
     const navigate = (path) => {
         if (onNavigate) {
@@ -137,7 +138,7 @@ export function LocationTypes({ onNavigate, }) {
                             hideable: false,
                             render: (_, row) => (_jsxs("div", { className: "flex items-center justify-end gap-2", children: [_jsx(Button, { variant: "ghost", size: "sm", onClick: () => handleEdit(row), disabled: mutating, children: _jsx(Edit, { size: 16 }) }), !row.isSystem && (_jsx(Button, { variant: "ghost", size: "sm", onClick: () => handleDelete(row), disabled: mutating, children: _jsx(Trash2, { size: 16, className: "text-red-500" }) }))] })),
                         },
-                    ], data: types.map((type) => ({
+                    ], data: typesArray.map((type) => ({
                         id: type.id,
                         name: type.name,
                         code: type.code,

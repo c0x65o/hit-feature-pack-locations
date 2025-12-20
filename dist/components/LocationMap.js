@@ -69,6 +69,7 @@ export function LocationMap({ location, locations = [], height = '400px', zoom =
     const [isClient, setIsClient] = useState(false);
     const [componentsReady, setComponentsReady] = useState(false);
     const { types } = useLocationTypes();
+    const typesArray = Array.isArray(types) ? types : [];
     // Determine which location(s) to show
     const locationsToShow = useMemo(() => {
         return (location ? [location] : locations).filter((loc) => loc.latitude && loc.longitude);
@@ -155,7 +156,7 @@ export function LocationMap({ location, locations = [], height = '400px', zoom =
                     const lat = parseFloat(loc.latitude);
                     const lng = parseFloat(loc.longitude);
                     const typeId = loc.locationTypeId || loc.location_type_id;
-                    const locationType = types.find(t => t.id === typeId);
+                    const locationType = typesArray.find(t => t.id === typeId);
                     return (_jsx(Marker, { position: [lat, lng], icon: createIconSync(locationType ? { icon: locationType.icon, color: locationType.color, name: locationType.name, code: locationType.code } : null), eventHandlers: {
                             click: () => {
                                 if (onLocationClick) {

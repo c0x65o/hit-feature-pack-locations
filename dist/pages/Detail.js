@@ -13,6 +13,7 @@ export function LocationDetail({ id, onNavigate, }) {
     const { location, loading, error } = useLocation(id);
     const { deleteLocation, loading: mutating } = useLocationMutations();
     const { types } = useLocationTypes();
+    const typesArray = Array.isArray(types) ? types : [];
     const [parentLocation, setParentLocation] = useState(null);
     const [loadingParent, setLoadingParent] = useState(false);
     // Fetch parent location if parentId exists
@@ -44,7 +45,7 @@ export function LocationDetail({ id, onNavigate, }) {
     // Get location type - handle both camelCase and snake_case from API
     const locationTypeId = location?.locationTypeId || location?.location_type_id;
     const locationType = locationTypeId
-        ? types.find(t => t.id === locationTypeId)
+        ? typesArray.find(t => t.id === locationTypeId)
         : null;
     // Get icon component for location type
     const LocationTypeIcon = locationType?.icon

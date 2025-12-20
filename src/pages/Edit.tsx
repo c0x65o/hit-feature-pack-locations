@@ -25,6 +25,7 @@ export function LocationEdit({
   const { location, loading: loadingLocation, error: loadError } = useLocation(isNew ? undefined : id);
   const { createLocation, updateLocation, loading: saving, error: saveError } = useLocationMutations();
   const { types } = useLocationTypes();
+  const typesArray = Array.isArray(types) ? types : [];
   const { geocode, loading: geocoding } = useGeocode();
 
   const [name, setName] = useState('');
@@ -240,7 +241,7 @@ export function LocationEdit({
                 onChange={(val) => setLocationTypeId(val || null)}
                 options={[
                   { value: '', label: 'No Type' },
-                  ...types.map(type => ({ value: type.id, label: type.name })),
+                  ...typesArray.map(type => ({ value: type.id, label: type.name })),
                 ]}
               />
             </div>

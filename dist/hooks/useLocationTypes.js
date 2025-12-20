@@ -37,12 +37,15 @@ export function useLocationTypes() {
     const refresh = useCallback(async () => {
         try {
             setLoading(true);
-            const data = await fetchApi('/types');
-            setTypes(data);
+            const response = await fetchApi('/types');
+            // Handle both { items: [...] } and direct array responses
+            const items = Array.isArray(response) ? response : (response?.items || []);
+            setTypes(Array.isArray(items) ? items : []);
             setError(null);
         }
         catch (e) {
             setError(e);
+            setTypes([]); // Reset to empty array on error
         }
         finally {
             setLoading(false);
