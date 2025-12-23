@@ -45,19 +45,13 @@ export * from './hooks/index';
 // Navigation config
 export { navContributions as nav } from './nav';
 
-// Schema exports - for projects to import into their schema
-export {
-  locationTypes,
-  locations,
-  locationUserMemberships,
-  type LocationType,
-  type InsertLocationType,
-  type UpdateLocationType,
-  type Location,
-  type InsertLocation,
-  type UpdateLocation,
-  type LocationUserMembership,
-  type InsertLocationUserMembership,
-  type UpdateLocationUserMembership,
-  DEFAULT_LOCATION_TYPES,
-} from './schema/locations';
+// Schema exports - MOVED to @hit/feature-pack-locations/schema to avoid bundling drizzle-orm in client
+// Don't import from schema file at all - it pulls in drizzle-orm
+
+// Default location types - defined inline to avoid pulling in schema file
+export const DEFAULT_LOCATION_TYPES = [
+  { name: 'Building', icon: 'Building', color: '#6366f1' },
+  { name: 'Floor', icon: 'Layers', color: '#8b5cf6' },
+  { name: 'Room', icon: 'DoorOpen', color: '#ec4899' },
+  { name: 'Desk', icon: 'Monitor', color: '#10b981' },
+] as const;

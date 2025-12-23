@@ -21,5 +21,21 @@ export { LocationDashboard as Dashboard } from './pages/Dashboard';
 export * from './components/index';
 export * from './hooks/index';
 export { navContributions as nav } from './nav';
-export { locationTypes, locations, locationUserMemberships, type LocationType, type InsertLocationType, type UpdateLocationType, type Location, type InsertLocation, type UpdateLocation, type LocationUserMembership, type InsertLocationUserMembership, type UpdateLocationUserMembership, DEFAULT_LOCATION_TYPES, } from './schema/locations';
+export declare const DEFAULT_LOCATION_TYPES: readonly [{
+    readonly name: "Building";
+    readonly icon: "Building";
+    readonly color: "#6366f1";
+}, {
+    readonly name: "Floor";
+    readonly icon: "Layers";
+    readonly color: "#8b5cf6";
+}, {
+    readonly name: "Room";
+    readonly icon: "DoorOpen";
+    readonly color: "#ec4899";
+}, {
+    readonly name: "Desk";
+    readonly icon: "Monitor";
+    readonly color: "#10b981";
+}];
 //# sourceMappingURL=index.d.ts.map
