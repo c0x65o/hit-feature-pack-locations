@@ -143,7 +143,7 @@ export function LocationTypes({
               key: 'name',
               label: 'Name',
               sortable: true,
-              render: (_, row) => {
+              render: (_: unknown, row: Record<string, unknown>) => {
                 const IconComponent = iconMap[row.icon as string] || Building2;
                 const iconColor = row.color as string;
                 return (
@@ -208,7 +208,7 @@ export function LocationTypes({
               align: 'right' as const,
               sortable: false,
               hideable: false,
-              render: (_, row) => (
+              render: (_: unknown, row: Record<string, unknown>) => (
                 <div className="flex items-center justify-end gap-2">
                   <Button
                     variant="ghost"
@@ -259,7 +259,7 @@ export function LocationTypes({
             <label className="block text-sm font-medium mb-2">Name</label>
             <Input
               value={formData.name}
-              onChange={(val) => setFormData({ ...formData, name: val })}
+              onChange={(val: string) => setFormData({ ...formData, name: val })}
               placeholder="e.g., Warehouse"
             />
           </div>
@@ -267,7 +267,7 @@ export function LocationTypes({
             <label className="block text-sm font-medium mb-2">Code</label>
             <Input
               value={formData.code}
-              onChange={(val) => setFormData({ ...formData, code: val.toLowerCase().replace(/\s+/g, '_') })}
+              onChange={(val: string) => setFormData({ ...formData, code: val.toLowerCase().replace(/\s+/g, '_') })}
               placeholder="e.g., warehouse"
               disabled={!!selectedType}
             />
@@ -279,7 +279,7 @@ export function LocationTypes({
             <label className="block text-sm font-medium mb-2">Icon</label>
             <Input
               value={formData.icon}
-              onChange={(val) => setFormData({ ...formData, icon: val })}
+              onChange={(val: string) => setFormData({ ...formData, icon: val })}
               placeholder="e.g., Building2"
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -297,7 +297,7 @@ export function LocationTypes({
               />
               <Input
                 value={formData.color}
-                onChange={(val) => setFormData({ ...formData, color: val })}
+                onChange={(val: string) => setFormData({ ...formData, color: val })}
                 placeholder="#3b82f6"
               />
             </div>
@@ -306,7 +306,7 @@ export function LocationTypes({
             <label className="block text-sm font-medium mb-2">Description</label>
             <Input
               value={formData.description}
-              onChange={(val) => setFormData({ ...formData, description: val })}
+              onChange={(val: string) => setFormData({ ...formData, description: val })}
               placeholder="Optional description"
             />
           </div>

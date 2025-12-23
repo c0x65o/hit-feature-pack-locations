@@ -238,7 +238,7 @@ export function LocationEdit({
               <label className="block text-sm font-medium mb-2">Location Type</label>
               <Select
                 value={locationTypeId || ''}
-                onChange={(val) => setLocationTypeId(val || null)}
+                onChange={(val: string) => setLocationTypeId(val || null)}
                 options={[
                   { value: '', label: 'No Type' },
                   ...typesArray.map(type => ({ value: type.id, label: type.name })),

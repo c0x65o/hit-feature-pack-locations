@@ -159,7 +159,7 @@ export function LocationUserAssociations({
           key: 'user',
           label: 'User',
           sortable: true,
-          render: (_, row) => {
+          render: (_: unknown, row: Record<string, unknown>) => {
             const userInfo = getUserDisplayInfo(row.userKey as string);
             return (
               <div className="flex items-center gap-2">
@@ -177,7 +177,7 @@ export function LocationUserAssociations({
         {
           key: 'locations',
           label: 'Locations',
-          render: (_, row) => {
+          render: (_: unknown, row: Record<string, unknown>) => {
             const userMemberships = userLocationMap.get(row.userKey as string) || [];
             return (
               <div className="flex flex-wrap gap-2">
@@ -203,7 +203,7 @@ export function LocationUserAssociations({
           align: 'right' as const,
           sortable: false,
           hideable: false,
-          render: (_, row) => {
+          render: (_: unknown, row: Record<string, unknown>) => {
             const userMemberships = userLocationMap.get(row.userKey as string) || [];
             return (
               <div className="flex items-center justify-end gap-2">
@@ -238,7 +238,7 @@ export function LocationUserAssociations({
           key: 'user',
           label: 'User',
           sortable: true,
-          render: (_, row) => {
+          render: (_: unknown, row: Record<string, unknown>) => {
             const user = row as unknown as DirectoryUser;
             return (
               <div className="flex items-center gap-2">
@@ -256,7 +256,7 @@ export function LocationUserAssociations({
         {
           key: 'role',
           label: 'Role',
-          render: (_, row) => {
+          render: (_: unknown, row: Record<string, unknown>) => {
             const user = row as unknown as DirectoryUser;
             return (
               <Badge variant={user.role === 'admin' ? 'info' : 'default'}>
@@ -271,7 +271,7 @@ export function LocationUserAssociations({
           align: 'right' as const,
           sortable: false,
           hideable: false,
-          render: (_, row) => {
+          render: (_: unknown, row: Record<string, unknown>) => {
             const user = row as unknown as DirectoryUser;
             return (
               <Button
@@ -325,7 +325,7 @@ export function LocationUserAssociations({
         ) : userDirectoryEnabled ? (
           <Tabs
             activeTab={activeTab}
-            onChange={(tabId) => setActiveTab(tabId as 'all' | 'missing')}
+            onChange={(tabId: string) => setActiveTab(tabId as 'all' | 'missing')}
             tabs={[
               { id: 'all', label: `All Users (${uniqueUsers.length})`, content: allUsersContent },
               { id: 'missing', label: `Missing Associations (${missingUsers.length})`, content: missingUsersContent },

@@ -114,7 +114,7 @@ export function LocationList({
               key: 'name',
               label: 'Name',
               sortable: true,
-              render: (_, row) => {
+              render: (_: unknown, row: Record<string, unknown>) => {
                 const hasCoords = Boolean(row.latitude && row.longitude);
                 const typeId = (row as any).locationTypeId || (row as any).location_type_id;
                 const locationType = typesArray.find(t => t.id === typeId);
@@ -149,7 +149,7 @@ export function LocationList({
             {
               key: 'address',
               label: 'Address',
-              render: (_, row) =>
+              render: (_: unknown, row: Record<string, unknown>) =>
                 formatAddress({
                   address: row.address as string | null,
                   city: row.city as string | null,
@@ -160,7 +160,7 @@ export function LocationList({
             {
               key: 'locationTypeId',
               label: 'Type',
-              render: (_, row) => {
+              render: (_: unknown, row: Record<string, unknown>) => {
                 const typeId = (row as any).locationTypeId || (row as any).location_type_id;
                 const locationType = typesArray.find(t => t.id === typeId);
                 return locationType ? (
@@ -188,7 +188,7 @@ export function LocationList({
               align: 'right' as const,
               sortable: false,
               hideable: false,
-              render: (_, row) => (
+              render: (_: unknown, row: Record<string, unknown>) => (
                 <div className="flex items-center justify-end gap-2">
                   <Button variant="ghost" size="sm" onClick={() => navigate(`/locations/${row.id}`)}>
                     <Eye size={16} />
