@@ -9,25 +9,25 @@ description: Locations feature pack with hierarchical locations, user assignment
 routes:
   - path: /locations
     page: Dashboard
-    roles: []  # Empty = authenticated users only
+    roles: [admin]  # Admin only
   - path: /locations/list
     page: LocationList
-    roles: []
+    roles: [admin]
   - path: /locations/new
     page: LocationEdit
-    roles: []
+    roles: [admin]
   - path: /locations/types
     page: LocationTypes
-    roles: []
+    roles: [admin]
   - path: /locations/users
     page: LocationUserAssociations
-    roles: []
+    roles: [admin]
   - path: /locations/[id]
     page: LocationDetail
-    roles: []
+    roles: [admin]
   - path: /locations/[id]/edit
     page: LocationEdit
-    roles: []
+    roles: [admin]
 
 # Navigation contributions - auto-added to shell sidebar
 nav:
@@ -35,9 +35,10 @@ nav:
     label: Locations
     path: /locations
     icon: MapPin
-    group: main  # Primary business features
+    group: system  # System/admin tools
+    roles: [admin]
     showWhen: authenticated
-    weight: 150  # Primary content near top (lower weight = higher position)
+    weight: 920  # System area, after tasks/metrics
     children:
       - id: locations-dashboard
         label: Dashboard
@@ -45,24 +46,28 @@ nav:
         icon: LayoutDashboard
         weight: 100
         showWhen: authenticated
+        roles: [admin]
       - id: locations-list
         label: All Locations
         path: /locations/list
         icon: MapPin
         weight: 110
         showWhen: authenticated
+        roles: [admin]
       - id: locations-types
         label: Location Types
         path: /locations/types
         icon: Tag
         weight: 120
         showWhen: authenticated
+        roles: [admin]
       - id: locations-users
         label: User Associations
         path: /locations/users
         icon: Users
         weight: 130
         showWhen: authenticated
+        roles: [admin]
 
 # Schema contributions (Drizzle tables)
 # Projects import these into their schema
