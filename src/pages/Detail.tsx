@@ -15,7 +15,7 @@ import { useLocation, useLocationMutations, type Location } from '../hooks/useLo
 import { useLocationTypes, type LocationType } from '../hooks/useLocationTypes';
 import { LocationMap } from '../components/LocationMap';
 import { LocationUsers } from '../components/LocationUsers';
-import * as LucideIcons from 'lucide-react';
+import { resolveLucideIconStrict } from '../utils/lucide-allowlist';
 
 interface LocationDetailProps {
   id?: string;
@@ -69,7 +69,7 @@ export function LocationDetail({
 
   // Get icon component for location type
   const LocationTypeIcon = locationType?.icon
-    ? (LucideIcons[locationType.icon as keyof typeof LucideIcons] as React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }>) || Building2
+    ? resolveLucideIconStrict(locationType.icon)
     : Building2;
 
   const navigate = (path: string) => {

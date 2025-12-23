@@ -7,7 +7,7 @@ import { useLocation, useLocationMutations } from '../hooks/useLocations';
 import { useLocationTypes } from '../hooks/useLocationTypes';
 import { LocationMap } from '../components/LocationMap';
 import { LocationUsers } from '../components/LocationUsers';
-import * as LucideIcons from 'lucide-react';
+import { resolveLucideIconStrict } from '../utils/lucide-allowlist';
 export function LocationDetail({ id, onNavigate, }) {
     const { Page, Card, Button, Alert, Spinner, Badge } = useUi();
     const { location, loading, error } = useLocation(id);
@@ -49,7 +49,7 @@ export function LocationDetail({ id, onNavigate, }) {
         : null;
     // Get icon component for location type
     const LocationTypeIcon = locationType?.icon
-        ? LucideIcons[locationType.icon] || Building2
+        ? resolveLucideIconStrict(locationType.icon)
         : Building2;
     const navigate = (path) => {
         if (onNavigate) {
